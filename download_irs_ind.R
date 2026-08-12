@@ -19,11 +19,20 @@
 #                      county_{year}_noagi.csv.gz County income, county totals
 #   zip/               zip_{year}_agi.csv.gz      ZIP code data, by AGI class
 #                      zip_{year}_noagi.csv.gz    ZIP code data, ZIP totals
-#   national/by_size/  income_sources_{year}.xls  SOI Complete-Report basic
-#                      capital_assets_{year}.xls  tables by size of AGI, NATIONAL
-#                      income_tax_items_{year}.xls (no geography) -- the top-of-
-#                      marital_status_{year}.xls   distribution anchor for the
-#                      itemized_deductions_{year}.xls geographic reweighting
+#   national/by_size/  income_sources_{year}.xls  SOI Complete-Report (Pub 1304)
+#                      capital_assets_{year}.xls  basic tables by size of AGI,
+#                      income_tax_items_{year}.xls NATIONAL (no geography) -- the
+#                      marital_status_{year}.xls   top-of-distribution anchor for
+#                      itemized_deductions_{year}.xls the geographic reweighting,
+#                      returns_marital_age_{year}.xls plus the wider Pub 1304
+#                      dependent_returns_{year}.xls   by-size set (tax items,
+#                      eitc_{year}.xls                credits, rate brackets)
+#                      aca_items_{year}.xls
+#                      modified_taxable_income_{year}.xls
+#                      form8615_{year}.xls
+#                      tax_pct_of_agi_{year}.xls
+#                      tax_liability_{year}.xls
+#                      tax_generated_byrate_{year}.xls
 #   manifest.csv       path, source url, year, bytes, md5, retrieval date
 #
 # SOI file-naming quirks encoded below (verified against irs.gov 2026-07-12):
@@ -36,7 +45,7 @@
 #   - ZIP CSVs ({yy}zpallagi/noagi): 2011+.
 #
 # Usage:
-#   Rscript download_irs_ind.R                              # -> ./data, 2011-2022
+#   Rscript download_irs_ind.R                              # -> ./data, 2011-2023
 #   Rscript download_irs_ind.R 2017 2023                    # custom year range
 #   Rscript download_irs_ind.R --dest /path/to/store        # separate location
 #   Rscript download_irs_ind.R --dest /path/to/store 2017 2023
@@ -65,7 +74,7 @@ if (length(args) > 0 && args[1] == '--dest') {
   dest = args[2]
   args = args[-(1:2)]
 }
-years = if (length(args) >= 2) as.integer(args[1]):as.integer(args[2]) else 2011:2022
+years = if (length(args) >= 2) as.integer(args[1]):as.integer(args[2]) else 2011:2023
 
 dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 message('Destination: ', normalizePath(dest))
@@ -128,6 +137,31 @@ targets = function(year) {
          to  = sprintf('national/by_size/capital_assets_%d.xls',      year), gz = FALSE),  # T1.4A
     list(url = sprintf('%sin21id.xls',  yy),
          to  = sprintf('national/by_size/itemized_deductions_%d.xls', year), gz = FALSE),  # T2.1
+
+    # Wider Pub 1304 by-size set (added 2026-08; published through TY2023).
+    # Single filename pattern per table holds for 2003+ vintages -- earlier
+    # years use different suffixes (e.g. {yy}in12ar, {yy}in35mt; 1997 drops
+    # suffixes entirely), so extend the per-table maps before pulling
+    # pre-2003. Late starters (T1.6 2008, T1.7 2012, T2.7 2014, T3.1A 2008)
+    # simply 404 and are skipped in earlier years.
+    list(url = sprintf('%sin16ag.xls',  yy),
+         to  = sprintf('national/by_size/returns_marital_age_%d.xls',        year), gz = FALSE),  # T1.6
+    list(url = sprintf('%sin17dp.xls',  yy),
+         to  = sprintf('national/by_size/dependent_returns_%d.xls',          year), gz = FALSE),  # T1.7
+    list(url = sprintf('%sin25ic.xls',  yy),
+         to  = sprintf('national/by_size/eitc_%d.xls',                       year), gz = FALSE),  # T2.5
+    list(url = sprintf('%sin27aca.xls', yy),
+         to  = sprintf('national/by_size/aca_items_%d.xls',                  year), gz = FALSE),  # T2.7
+    list(url = sprintf('%sin31mt.xls',  yy),
+         to  = sprintf('national/by_size/modified_taxable_income_%d.xls',    year), gz = FALSE),  # T3.1
+    list(url = sprintf('%sin31amt.xls', yy),
+         to  = sprintf('national/by_size/form8615_%d.xls',                   year), gz = FALSE),  # T3.1A
+    list(url = sprintf('%sin32tt.xls',  yy),
+         to  = sprintf('national/by_size/tax_pct_of_agi_%d.xls',             year), gz = FALSE),  # T3.2
+    list(url = sprintf('%sin33ar.xls',  yy),
+         to  = sprintf('national/by_size/tax_liability_%d.xls',              year), gz = FALSE),  # T3.3
+    list(url = sprintf('%sin35tr.xls',  yy),
+         to  = sprintf('national/by_size/tax_generated_byrate_%d.xls',       year), gz = FALSE),  # T3.5
 
     # Documentation, saved alongside the data
     list(url = sprintf('%sinstatesharesdocguide.pdf', yy),

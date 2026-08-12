@@ -22,7 +22,7 @@ directly).
 ## Usage
 
 ```bash
-Rscript download_irs_ind.R                        # -> ./data, years 2011-2022
+Rscript download_irs_ind.R                        # -> ./data, years 2011-2023
 Rscript download_irs_ind.R 2017 2023              # custom year range
 Rscript download_irs_ind.R --dest /path/to/store  # separate destination
 ```
@@ -47,11 +47,20 @@ county/             county_{year}_agi.csv.gz          County income data, by AGI
                     county_{year}_noagi.csv.gz        County income data, county totals
 zip/                zip_{year}_agi.csv.gz             ZIP code data, by AGI class
                     zip_{year}_noagi.csv.gz           ZIP code data, ZIP totals
-national/by_size/   income_sources_{year}.xls         SOI Complete-Report basic tables
-                    capital_assets_{year}.xls         by size of AGI, NATIONAL (no geo):
-                    income_tax_items_{year}.xls       the fine top-of-distribution anchor
-                    marital_status_{year}.xls         (AGI classes up to $10M+). Raw .xls.
-                    itemized_deductions_{year}.xls
+national/by_size/   income_sources_{year}.xls         SOI Complete-Report (Pub 1304) basic
+                    capital_assets_{year}.xls         tables by size of AGI, NATIONAL (no
+                    income_tax_items_{year}.xls       geo): the fine top-of-distribution
+                    marital_status_{year}.xls         anchor (AGI classes up to $10M+).
+                    itemized_deductions_{year}.xls    Raw .xls.
+                    returns_marital_age_{year}.xls    T1.6: counts by marital status x age
+                    dependent_returns_{year}.xls      T1.7: dependent filers
+                    eitc_{year}.xls                   T2.5: returns with EITC
+                    aca_items_{year}.xls              T2.7: ACA items
+                    modified_taxable_income_{year}.xls T3.1: by tax-computation type
+                    form8615_{year}.xls               T3.1A: "kiddie tax" computations
+                    tax_pct_of_agi_{year}.xls         T3.2: tax as % of AGI
+                    tax_liability_{year}.xls          T3.3: liability, credits, payments
+                    tax_generated_byrate_{year}.xls   T3.5: tax by marginal rate bracket
 manifest.csv        path, source url, year, bytes, md5, retrieval date
 ```
 
@@ -85,15 +94,18 @@ The SOI documentation guides themselves are downloaded alongside the data
 | State percentile shares | 2013–2022 | `{yy}instateshares.csv` (+ `...docguide.pdf`) |
 | County income | 2011, 2013–2022 | `{yy}incyallagi.csv` / `{yy}incyallnoagi.csv` (2012 and earlier are zip archives, not pulled) |
 | ZIP code data | 2011–2022 | `{yy}zpallagi.csv` / `{yy}zpallnoagi.csv` |
-| National by-size 1.1/1.2/1.4/2.1 | 2011–2022 | `{yy}in11si.xls` / `in12ms` / `in14ar` / `in21id` (`.xls`) |
-| National by-size 1.4A (cap assets) | 2012–2022 | `{yy}in14acg.xls` (`.xls`; 2011 unpublished) |
+| National by-size 1.1/1.2/1.4/2.1 | 2011–2023 | `{yy}in11si.xls` / `in12ms` / `in14ar` / `in21id` (`.xls`) |
+| National by-size 1.4A (cap assets) | 2012–2023 | `{yy}in14acg.xls` (`.xls`; 2011 unpublished) |
+| National by-size 2.5/3.1/3.2/3.3/3.5 | 2011–2023 | `{yy}in25ic` / `in31mt` / `in32tt` / `in33ar` / `in35tr` (`.xls`; published back to 1996–2003 under older suffixes, not pulled) |
+| National by-size 1.6 / 1.7 / 2.7 / 3.1A | 2011/2012/2014/2011 –2023 | `{yy}in16ag` / `in17dp` / `in27aca` / `in31amt` (`.xls`; T1.7 starts 2012, T2.7 starts 2014) |
 
 Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 2017 and *number of individuals* from 2018 (TCJA); state rows include the 50
 states, DC, and PR/"other areas" (some vintages separate PR from OA).
 
 When SOI publishes a new year, extend the range:
-`Rscript download_irs_ind.R --dest <store> 2011 2023`.
+`Rscript download_irs_ind.R --dest <store> 2011 2024`. (The geographic files
+currently trail the national by-size tables by a year: TY2022 vs TY2023.)
 
 ## Known consumers
 
