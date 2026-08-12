@@ -1,9 +1,11 @@
 #!/usr/bin/env Rscript
 #------------------------------------------------------------------------------
-# download_irs_geo.R
+# download_irs_ind.R
 #
-# Downloads an organized copy of the IRS SOI "data by geographic area" files:
+# Downloads an organized copy of IRS SOI individual income tax statistics:
+# the "data by geographic area" files
 # https://www.irs.gov/statistics/soi-tax-stats-data-by-geographic-area
+# plus the national Complete Report (Pub 1304) basic tables by size of AGI
 #
 # The DESTINATION is configurable: by default data lands in this repo's own
 # (gitignored) data/ folder; pass --dest to download to a separate location
@@ -34,10 +36,10 @@
 #   - ZIP CSVs ({yy}zpallagi/noagi): 2011+.
 #
 # Usage:
-#   Rscript download_irs_geo.R                              # -> ./data, 2011-2022
-#   Rscript download_irs_geo.R 2017 2023                    # custom year range
-#   Rscript download_irs_geo.R --dest /path/to/store        # separate location
-#   Rscript download_irs_geo.R --dest /path/to/store 2017 2023
+#   Rscript download_irs_ind.R                              # -> ./data, 2011-2022
+#   Rscript download_irs_ind.R 2017 2023                    # custom year range
+#   Rscript download_irs_ind.R --dest /path/to/store        # separate location
+#   Rscript download_irs_ind.R --dest /path/to/store 2017 2023
 #
 # Budget Lab internal users: pass the lab's shared raw_data store (documented
 # internally) via --dest.

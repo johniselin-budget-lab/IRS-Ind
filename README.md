@@ -1,12 +1,14 @@
-# IRS-GEO
+# IRS-Ind
 
-Downloader for an organized mirror of the IRS SOI **individual income tax
-data by geographic area**:
-https://www.irs.gov/statistics/soi-tax-stats-data-by-geographic-area
-plus a small set of **national companion tables by size of AGI** (Complete
-Report / Pub 1304 basic tables) that resolve the top of the distribution
-finely — carried because the geographic files stop at a `$1M+` class and
-downstream reweighting needs the finer national top as an anchor.
+Downloader for an organized mirror of IRS SOI **individual income tax
+statistics**, in two families:
+
+- **data by geographic area** (state, county, ZIP):
+  https://www.irs.gov/statistics/soi-tax-stats-data-by-geographic-area
+- **national basic tables by size of AGI** (Complete Report / Pub 1304),
+  which resolve the top of the distribution finely — the geographic files
+  stop at a `$1M+` class, and downstream reweighting needs the finer
+  national top as an anchor.
 
 This repo holds the **code only** — data is downloaded on demand, either into
 the repo's own (gitignored) `data/` folder or to a separate location of your
@@ -20,9 +22,9 @@ directly).
 ## Usage
 
 ```bash
-Rscript download_irs_geo.R                        # -> ./data, years 2011-2022
-Rscript download_irs_geo.R 2017 2023              # custom year range
-Rscript download_irs_geo.R --dest /path/to/store  # separate destination
+Rscript download_irs_ind.R                        # -> ./data, years 2011-2022
+Rscript download_irs_ind.R 2017 2023              # custom year range
+Rscript download_irs_ind.R --dest /path/to/store  # separate destination
 ```
 
 Budget Lab internal users: the canonical shared destination (already
@@ -91,7 +93,7 @@ Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 states, DC, and PR/"other areas" (some vintages separate PR from OA).
 
 When SOI publishes a new year, extend the range:
-`Rscript download_irs_geo.R --dest <store> 2011 2023`.
+`Rscript download_irs_ind.R --dest <store> 2011 2023`.
 
 ## Known consumers
 

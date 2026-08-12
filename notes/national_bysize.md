@@ -1,8 +1,8 @@
 # Notes: National tables by size of AGI (`national/by_size/`)
 
 Documentation compiled 2026-07, verified against the local files. These are
-**national** SOI tables (no geography) — the deliberate exception to this
-repo's "by geographic area" scope. They are carried because they are the
+**national** SOI tables (no geography), unlike the rest of this repo's
+by-geographic-area files. They are carried because they are the
 **distributional backbone the geographic files lack**: HT2 stops at a single
 `$1,000,000+` state class, but these resolve AGI up to `$10,000,000+` with full
 sources of income, so they anchor the top of the distribution when the
