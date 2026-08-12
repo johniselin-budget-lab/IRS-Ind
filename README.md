@@ -82,6 +82,10 @@ the files:
 - [notes/national_bysize.md](notes/national_bysize.md) — national Complete-Report
   tables by size of AGI (table→filename map, the fine top brackets, $thousands
   units, multi-row headers, TCJA-2018 combined IRA/pension one-off)
+- [notes/alignment_plan.md](notes/alignment_plan.md) — the standing plan:
+  aligned cross-year panels for the by-size tables, pushing them back to
+  1996/1993, geographic backfill options, and a proposal to add the nonfarm
+  sole proprietorship (Schedule C) tables
 
 The SOI documentation guides themselves are downloaded alongside the data
 (`*docguide*` files in each destination folder).
