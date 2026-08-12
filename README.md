@@ -101,7 +101,8 @@ The SOI documentation guides themselves are downloaded alongside the data
 | National by-size 1.1/1.2/1.4/2.1 | 2011–2023 | `{yy}in11si.xls` / `in12ms` / `in14ar` / `in21id` (`.xls`) |
 | National by-size 1.4A (cap assets) | 2012–2023 | `{yy}in14acg.xls` (`.xls`; 2011 unpublished) |
 | National by-size 2.5/3.1/3.2/3.3/3.5 | 2011–2023 | `{yy}in25ic` / `in31mt` / `in32tt` / `in33ar` / `in35tr` (`.xls`; published back to 1996–2003 under older suffixes, not pulled) |
-| National by-size 1.6 / 1.7 / 2.7 / 3.1A | 2011/2012/2014/2011 –2023 | `{yy}in16ag` / `in17dp` / `in27aca` / `in31amt` (`.xls`; T1.7 starts 2012, T2.7 starts 2014) |
+| National by-size 1.6 / 3.1A | 2011–2023 | `{yy}in16ag` / `in31amt` (`.xls`; published from 2008, pulled from the repo's 2011 floor) |
+| National by-size 1.7 / 2.7 | 2012–2023 / 2014–2023 | `{yy}in17dp` / `{yy}in27aca` (`.xls`; first published TY2012 and TY2014) |
 
 Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 2017 and *number of individuals* from 2018 (TCJA); state rows include the 50
