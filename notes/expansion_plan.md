@@ -101,11 +101,27 @@ The `{rev}` token is a publication date, not a tax year, and cannot be derived:
 
 Each data page is a vector facsimile of the real form with the estimate
 printed in the line's entry box (TY2023 p4801: 236 pages, 0 raster images,
-~376 vector drawings/page). Verified geometry on the TY2023 Form 1040 pages:
-line labels sit in a fixed column near x≈490 pt, estimates to their right at
-x≈514–534 pt, rows separated by ~11 pt. Even pages carry **number of returns**,
-odd pages the corresponding **amount in $ thousands** — stated in the
-publication's own preamble and confirmed by the values.
+~376 vector drawings/page). Even pages carry **number of returns**, odd pages
+the corresponding **amount in $ thousands** — stated in the publication's own
+preamble and confirmed by the values.
+
+**Anchor on the form's drawn entry boxes, not on an "entry column".** A spike
+on the TY2023 Form 1040 pages (2026-08-17) settled this; three things kill the
+column approach:
+
+- the 1040 has **two** entry columns — a mid-page box for lines 2a–6a
+  (x 257.4–328.1) and the right-margin box (x 504.8–575.5) — and other forms
+  have more;
+- estimates are **not** reliably right-aligned inside their box (right edges
+  wander 554–576 pt with digit count), so clustering right edges silently
+  drops short values — line 1f = 516 was lost this way;
+- column x-positions shift ~2.5 pt between facing pages, so nothing can be
+  hardcoded.
+
+The drawn boxes, by contrast, are exactly regular: one 11.1 pt-tall rectangle
+per line, read straight from `page.get_drawings()`. Anchoring on them also
+discards body-text numerals ("Form 8995", "Schedule 1, line 26", "January 2,
+1959") for free, with no filtering rules.
 
 Proposed helper: **`parse_line_items.py`**, Python + PyMuPDF (`import fitz` —
 already installed on this cluster; R's `pdftools` needs the `poppler` module
@@ -120,13 +136,19 @@ Algorithm:
 2. Read the TOC pages (3–6 in the TY2023 vintage) to map *section* → *printed
    page*, then resolve printed page → PDF page index by offset. Cross-check
    against each page's own running header rather than trusting either alone.
-3. Per page: `get_text("words")`, cluster into rows by y-midpoint (~3 pt
-   tolerance), take the right-most numeric token past the entry-column
-   threshold as the value and the `^\d{1,2}[a-z]?$` token to its left as the
-   line label. Keep the row's left-hand text as `line_text` (best effort —
-   useful for matching across years when line numbers renumber).
-4. Assert the parsed total-returns and AGI values against Pub 1304 before
-   emitting anything (see the harness below).
+3. Per page: read the entry boxes from `get_drawings()` (rects ~25–130 pt
+   wide, 7–16 pt tall). A **value** is a numeric token whose centre falls
+   inside a box; its **line label** is the nearest `^\d{1,2}[a-z]?$` token to
+   the left of that box on the same rows. Skip a token that is itself a label
+   — line 7's "check here" checkbox is a drawn box containing its own label.
+   Keep the row's left-hand text as `line_text` (best effort — useful for
+   matching across years when lines renumber).
+4. Emit values whose box has **no** label to the left as a separate stream,
+   don't drop them: on the 1040 page these are the filing-status counts
+   (Single 80,288,820 · MFJ 54,491,797 · MFS 4,139,858 · HOH 21,604,490 ·
+   QSS 77,143 — summing to the published total return count) and the
+   dependants grid. They cross-check Table 1.2 and are worth having.
+5. Assert against Pub 1304 before emitting anything (see the harness below).
 
 Output: one long CSV, `aligned/line_items.csv` —
 
@@ -185,6 +207,28 @@ value, target value, difference, pct, status). Rules:
 
 This harness is worth building even before the scraper is complete: the
 2-row TY2023 check above already runs.
+
+### Spike result (2026-08-17)
+
+Both TY2023 Form 1040 pages parsed in full — 28 lines (1a–1h, 1z, 2a/2b
+through 6a/6b, 7–15) on each of the returns and amounts pages — and checked
+against Tables 1.1 and 1.4: **27 of 27 crosswalk items matched exactly**,
+including every individual wage component. Table 1.4 turns out to carry
+lines 1a, 1b, 1c, 1e, 1g and 1h as separate column pairs, so the crosswalk
+for the wages block is nearly 1:1 rather than aggregate-only.
+
+Two traps the spike exposed, both on the Pub 1304 side:
+
+- **Merged-cell headers.** The item name spans the Number-of-returns / Amount
+  pair, so `readxl` gives it to the first column only and every Amount column
+  flattens to an indistinguishable `Amount | n`. Forward-fill the item name
+  across the pair and keep the published column number as a stable anchor.
+- **Panel-scoped columns.** Table 1.1's taxable-income columns sit inside its
+  *Taxable returns* panel, so they exclude returns with positive taxable
+  income but no tax after credits — an 18.4 million-return, $319 billion gap
+  against the 1040's line 15. The all-returns equivalent is Table 1.4
+  col 141/142. **Every crosswalk row must name the panel, not just the item.**
+  The harness caught this as a MISMATCH, which is the point.
 
 ## 3. Sales of capital assets — closed at TY2015
 
