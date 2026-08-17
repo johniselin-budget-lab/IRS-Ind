@@ -17,7 +17,6 @@ Sources: [Pub 1304 by-size-of-AGI page][p1304] · geographic pages:
 [county]: https://www.irs.gov/statistics/soi-tax-stats-county-data
 [zipcode]: https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi
 [pctl]: https://www.irs.gov/statistics/soi-tax-stats-adjusted-gross-income-agi-percentile-data-by-state
-[soleprop]: https://www.irs.gov/statistics/soi-tax-stats-nonfarm-sole-proprietorship-statistics
 
 ## Where things stand
 
@@ -92,25 +91,19 @@ download-and-store decision first, alignment second:
 - TY2023 geographic files were not yet published as of 2026-08 — rerun the
   downloader when they land (the by-size tables already carry TY2023).
 
-## Proposed extension: nonfarm sole proprietorships (Schedule C)
+## Proposed extension: five more SOI individual families
 
-Schedule C filers are individual income tax — this belongs in IRS-Ind
-(suggested layout: `national/sole_prop/`), from the [nonfarm sole
-proprietorship page][soleprop] (surveyed 2026-08):
+Sole proprietorships (Schedule C) plus the line-item estimates
+(Pub 4801/5385), sales of capital assets, IRA, and Form W-2 statistics —
+what to mirror, the verified filename lineages, the PDF-scraping design, and
+a cross-validation harness that checks parsed line items against the Pub 1304
+tables already in the store. See **[expansion_plan.md](expansion_plan.md)**.
 
-| Table | Files | Coverage | Alignment prospect |
-|---|---|---|---|
-| Table 1: receipts, deductions, payroll, net income by NAICS sector | `{yy}sp01br.xls` | 1999–2023 (n=21; naming variants `sp01is`/`sp01ic`/`sp01cs` in 2000–03 to reconcile) | sector-level: ~21 stable NAICS sectors — same treatment as the corporate Tier 1 easy variant |
-| Table 2: full income statements by sector | `{yy}sp02is.xls` | 1999–2023 (n=23) | same; item stubs are an income-statement set (alias table needed) |
-| SIC-era Tables 1–2 | `{yy}sp01ig` / `sp02ig` etc. | 1996–1998 | SIC → cut at 1999 or division-level bridge only |
-| Table 3: by industry × size of business receipts | `{yy}sp03szbr.xls` (+ `16sp03br.xls`) | 2016–2020 | short-lived; mirror, align only if continued |
-| Table 4: Schedule C returns by AGI × marital status × age × industry | `{yy}sp04ra.xls` | 2017–2020 | short-lived; mirror as-is |
-
-Notes: Tables 1–2 are the durable series and publish through **TY2023**
-(fresher than the geographic files). A 2015 one-off "expanded" income
-statement (`15sp03isexpanded.xls`) exists. Whether Tables 3/4 are
-discontinued or just slow needs a check against newer SOI Bulletin
-releases before promising a panel.
+Alignment-relevant summary: sole prop Tables 1–2 are the durable series
+(1996–2023, fresher than the geographic files) and align at NAICS sector
+level like the corporate industry tables; IRA Tables 2/3/9/10 are by size or
+percentile of AGI and slot into the same distributional use as the by-size
+panels below.
 
 ## Recommended order
 
@@ -120,7 +113,9 @@ releases before promising a panel.
 2. **Align 3.3 and 3.5**, then the rest of the 14 as demand dictates.
 3. **Extend the by-size downloader pre-2011** (filename maps + BIFF
    format check) and stretch the aligned panels back to 1996/1993.
-4. **Sole proprietorship family**: downloader + store for Tables 1–4,
-   then sector-level panels for Tables 1–2 (1999–2023).
+4. **The five new families** ([expansion_plan.md](expansion_plan.md)):
+   downloader refactor, mirror all five, then the line-item scraper and its
+   cross-check harness; sole prop sector panels (Tables 1–2, 1999–2023) and
+   IRA by-AGI panels follow, reusing the same engine.
 5. **Geographic backfill** (county, then ZIP) when a consumer needs
    pre-2011 geography; HT2 per-state fan-out only on demonstrated need.
