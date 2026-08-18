@@ -1,141 +1,305 @@
-"""Extract line-item estimates from the SOI Pub 4801 / Pub 5385 PDFs.
+#!/usr/bin/env python3
+"""Extract line-item estimates from the SOI Pub 4801 line item estimate PDFs.
 
-Run directly, this emits the two items that can be checked against Pub 1304
-without a full scrape -- total returns filed, and Form 1040 adjusted gross
-income -- to <dest>/checks/line_item_values.csv, for run_checks.R to compare.
+Each data page is a vector facsimile of a tax form with the estimate printed
+in that line's entry box. For every page this recovers the form, the universe
+(all returns vs electronically filed), whether the page carries counts or
+amounts, and each line's label and value.
 
-The extraction core (`boxes`, `labelled_values`, `normalise`) is the reusable
-part: the full form-by-form scrape planned in notes/expansion_plan.md builds
-on these rather than reimplementing them.
+Outputs, under the download destination:
+  aligned/line_items.csv      one row per (year, form, universe, line, measure)
+  checks/line_item_values.csv the subset run_checks.R compares to Pub 1304
 
-Uses the box-anchored extraction settled by the TY2023 spike: a value is a
-numeric token whose centre falls inside one of the form's drawn entry boxes,
-and its line label is the nearest label-shaped token to the left of that box.
+Usage:  python3 parse_line_items.py <dest> [first_year] [last_year]
 
-The AGI row is selected by LINE NUMBER, from an explicit per-year map, not by
-matching the printed description. Description matching looked attractive but
-is fragile: the TY2018 redesign drops the phrase "this is your adjusted gross
-income", and TY2018's line 7 description wraps onto two printed lines with the
-entry box aligned to the second, so any text window wide enough to catch it
-also bleeds the phrase into the neighbouring row.
+Defaults to the validated years, TY2018-2023 (see notes/line_items.md): from
+TY2017 back, a vintage repeats the Form 1040 under two or three universes that
+the table of contents does not separate here, so the same line appears more
+than once and the universe column would be wrong. Earlier years can be
+requested explicitly; the run warns about every ambiguity it finds. The
+cover-page total is unaffected and is read for every year present.
+
+Needs PyMuPDF (`import fitz`). NOTE: on this cluster `module load R/...` swaps
+the Python environment and hides it -- run this in a shell without R loaded.
+
+See notes/line_items.md for the vintage traps this had to absorb.
 """
-import csv, glob, os, re, sys
+import csv
+import os
+import re
+import sys
+from collections import Counter
+
 import fitz
 
-if len(sys.argv) != 2:
-    sys.exit('usage: parse_line_items.py <dest>   (the download destination)')
-DEST = sys.argv[1]
-S = os.path.join(DEST, 'national', 'line_items')
 NUMERIC = re.compile(r'^\d{1,3}(,\d{3})*$|^\d{3,}$')
 LINE_LABEL = re.compile(r'^\d{1,2}[a-z]?$')
-Y_TOL = 8      # pt a value may sit outside its drawn box (TY2018 prints above)
-# The number sits immediately before the phrase, but the separator varies by
-# vintage (newline in most years, a tab in TY2014-15) and TY2013 typesets
-# "filed" with an fi LIGATURE that expands to "fi led" -- with a space -- so
-# the pattern tolerates gaps inside the word as well as normalising the text.
+MAX_LABEL_GAP = 40  # pt between a line label and its estimate
+
+# Page markers. Vintages differ in case (TY2011 shouts) and TY2013 typesets
+# "filed" with an fi ligature that extracts as "fi led", so text is normalised
+# and the patterns tolerate a gap inside the word.
+RETURNS_MARKER = re.compile(r'number of returns f\s*i\s*led', re.I)
+AMOUNTS_MARKER = re.compile(r'amounts of selected lines f\s*i\s*led', re.I)
+
+# Bottom-of-form legend: "Form 1040 (2023)", "Schedule C (Form 1040) 2023",
+# revision-dated forms such as "Form 965-A (Rev. 1-2021)" and "Form 965-A
+# (1-2019)" -- the same form, one vintage with the "Rev." prefix and one
+# without -- and the TY2019-20 vintages that name two parent forms:
+# "Schedule 1 (Form 1040 or 1040-SR) 2019".
+LEGEND = re.compile(r'^(?P<name>Form\s+[\w-]+|Schedule\s+[\w-]+)\s*'
+                    r'(?:\(Form[^)]*\))?\s*'
+                    r'(?:\(?(?:Rev\.\s*)?\d{0,2}-?20\d\d\)?)$')
+
+TOC_ENTRY = re.compile(r'^(?P<title>.+?)[^\w\s)]{2,}\s*(?P<page>\d{1,3})\s*$')
 TOTAL_RETURNS = re.compile(
     r'([\d,]{7,})\s+Total,?\s+all individual returns\s+f\s*i\s*led', re.I)
 
-def normalise(text):
-    return re.sub(r'\s+', ' ', text.replace('\ufb01', 'fi').replace('\ufb02', 'fl'))
-
-# Form 1040 line carrying AGI, by tax year.
+# Form 1040 line carrying AGI, by tax year. TY2019 is the only year it sits on
+# line 8b: the TY2020 redesign moved it to line 11, where it has stayed.
 AGI_LINE = dict([(y, '37') for y in range(2003, 2018)] +
                 [(2018, '7'), (2019, '8b'), (2020, '11'),
                  (2021, '11'), (2022, '11'), (2023, '11')])
-# TY2019 is the only year AGI sits on line 8b: the TY2020 redesign moved it to
-# line 11, where it has stayed.
 
-def boxes(page):
-    return [d['rect'] for d in page.get_drawings()
-            if 25 < d['rect'].width < 130 and 7 < d['rect'].height < 16]
 
-def labelled_values(page):
-    """{line label: value string} for the values printed in the form's boxes.
+def normalise(text):
+    return re.sub(r'\s+', ' ', text.replace('ﬁ', 'fi').replace('ﬂ', 'fl'))
 
-    Two refinements on the TY2023 spike, both forced by TY2018:
 
-    * values are not always INSIDE their box -- TY2018 prints them ~5pt above
-      it -- so a value is a numeric token whose x falls in a box's span and
-      whose y is within a small tolerance of that box, nearest box winning;
-    * the label is taken from the VALUE's own row, not the box's. Forms print
-      the line number twice (left of the description and again beside the box,
-      e.g. TY2018 at x=477), and the value aligns with the second. Taking the
-      rightmost label-shaped token to the left of the value on its row also
-      handles rows with two entry boxes (2a mid-page, 2b at the margin) and
-      ignores body-text numerals like the "1" in "Schedule 1, line 22".
+#--------------------
+# Page-level geometry
+#--------------------
+
+def label_columns(words, min_members=4):
+    """x positions where the form prints its line numbers.
+
+    Forms print each line number twice -- once left of the description and
+    again beside the entry column -- and both are real label columns. Body
+    text is full of numerals that look like labels ("Schedule 1, line 22"),
+    so only x positions several label-shaped tokens share are trusted.
     """
-    bs, words = boxes(page), page.get_text('words')
-    labels = [w for w in words if LINE_LABEL.match(w[4])]
-    out = {}
+    counts = Counter(round(w[0] / 2) * 2
+                     for w in words if LINE_LABEL.match(w[4]))
+    return {x for x, n in counts.items() if n >= min_members}
+
+
+def line_values(page):
+    """[(line label, value, description)] for the estimates printed on a page.
+
+    A value is a numeric token sitting immediately to the right of a line
+    label that stands in one of the form's label columns. Anchoring on the
+    label rather than on a drawn entry box is what makes this work across
+    forms: the 1040 draws filled rectangles behind its entry cells, but most
+    schedules rule theirs with bare line segments, so box detection finds
+    nothing on them and silently returns no values at all.
+
+    The label is taken from the value's own row. That also handles rows with
+    two entry columns (2a mid-page, 2b at the margin) and, with the adjacency
+    limit, keeps body-text numerals out: "Attach Form 4797" sits ~180pt from
+    the nearest label and is ignored.
+    """
+    words = page.get_text('words')
+    columns = label_columns(words)
+    labels = [w for w in words if LINE_LABEL.match(w[4])
+              and any(abs(w[0] - x) <= 3 for x in columns)]
+    out = []
     for w in words:
         if not NUMERIC.match(w[4]):
             continue
-        cx, cy = (w[0] + w[2]) / 2, (w[1] + w[3]) / 2
-        near = [b for b in bs if b.x0 <= cx <= b.x1
-                and b.y0 - Y_TOL <= cy <= b.y1 + Y_TOL]
-        if not near:
-            continue
+        cy = (w[1] + w[3]) / 2
         left = [l for l in labels
-                if l[2] <= w[0] and abs((l[1] + l[3]) / 2 - cy) <= 5]
+                if l[2] < w[0] and w[0] - l[2] <= MAX_LABEL_GAP
+                and abs((l[1] + l[3]) / 2 - cy) <= 5]
         if not left:
             continue
-        lab = max(left, key=lambda l: l[2])[4]
-        if lab == w[4]:
+        label = max(left, key=lambda l: l[2])
+        if label[4] == w[4] and label[0] == w[0]:
             continue
-        out.setdefault(lab, w[4])
+        # Best-effort description. A wrapped line puts half of it a row above,
+        # so this can be only the tail -- never key anything on it.
+        desc = ' '.join(t[4] for t in words
+                        if abs((t[1] + t[3]) / 2 - cy) <= 5 and t[2] < w[0])
+        out.append((label[4], w[4], desc.strip()[:120]))
     return out
 
 
-def agi_page_pair(doc, label):
-    """(returns page, amounts page) for the 1040 page carrying the AGI line."""
-    for i in range(doc.page_count - 1):
+def page_form(page):
+    for raw in page.get_text().split('\n'):
+        m = LEGEND.match(raw.strip())
+        if m:
+            return re.sub(r'\s+', ' ', m.group('name'))
+    return None
+
+
+def printed_page(page):
+    for raw in page.get_text().split('\n')[:4]:
+        line = raw.strip()
+        if line.isdigit() and len(line) <= 3:
+            return int(line)
+    return None
+
+
+#---------------------
+# Document structure
+#---------------------
+
+def toc_sections(doc, max_page=12):
+    """[(heading, kind, printed page)] from the table of contents."""
+    out, heading = [], None
+    for i in range(min(max_page, doc.page_count)):
         text = doc[i].get_text()
-        if 'adjusted gross income' not in text.lower():
+        if 'Contents' not in text and not out:
             continue
-        vals = labelled_values(doc[i])
-        if len(vals) >= 10 and label in vals:
-            return i, i + 1
-    return None, None
+        for raw in text.split('\n'):
+            line = raw.strip()
+            if not line:
+                continue
+            m = TOC_ENTRY.match(line)
+            if m and m.group('title').strip() in ('Returns', 'Amounts'):
+                out.append((heading, m.group('title').strip(), int(m.group('page'))))
+            elif not m and len(line) > 3 and not line[0].isdigit():
+                heading = line
+    return out
 
-rows, missing = [], []
-for path in sorted(glob.glob(os.path.join(S, 'p4801_*.pdf'))):
-    year = int(re.search(r'p4801_(\d{4})', path).group(1))
-    doc = fitz.open(path)
 
-    head = normalise('\n'.join(doc[i].get_text()
-                                for i in range(min(8, doc.page_count))))
-    m = TOTAL_RETURNS.search(head)   # first hit is the all-returns total;
-                                     # the electronically-filed total follows
-    if m:
-        rows.append(dict(tax_year=year, item='total_returns_filed',
-                         measure='returns', value=int(m.group(1).replace(',', ''))))
-    else:
-        missing.append('TY%d total_returns_filed (summary wording differs)' % year)
+def classify(doc):
+    """One record per data page: form, universe and measure."""
+    toc = toc_sections(doc)
+    starts = sorted({p for _, _, p in toc})
+    universe_at = {p: ('electronically filed'
+                       if heading and 'Electronically Filed' in heading
+                       else 'all returns')
+                   for heading, _, p in toc}
 
-    label = AGI_LINE.get(year)
-    ri, ai = agi_page_pair(doc, label) if label else (None, None)
-    if ri is None:
-        missing.append('TY%d agi (no 1040 page with line %s)' % (year, label))
-        continue
-    for idx, measure in ((ri, 'returns'), (ai, 'amount')):
-        v = labelled_values(doc[idx]).get(label)
-        if v is None:
-            missing.append('TY%d agi/%s (line %s absent on page %d)'
-                           % (year, measure, label, idx))
+    pages = []
+    for i in range(doc.page_count):
+        text = normalise(doc[i].get_text())
+        measure = ('returns' if RETURNS_MARKER.search(text) else
+                   'amount' if AMOUNTS_MARKER.search(text) else None)
+        if measure is None:
+            continue
+        pp = printed_page(doc[i])
+        owner = max([s for s in starts if pp is not None and s <= pp], default=None)
+        pages.append(dict(pdf_page=i, printed=pp, measure=measure,
+                          form=page_form(doc[i]),
+                          universe=universe_at.get(owner, 'all returns')))
+
+    # A form runs over several page pairs and only its first page carries the
+    # legend, so a page without one continues the form before it. Carry-forward
+    # is dangerous: when a legend pattern stops matching, it silently relabels
+    # every following page as the last form recognised. Track run length so a
+    # long run shows up as a defect rather than as plausible output.
+    last, run = None, 0
+    for r in pages:
+        if r['form']:
+            last, run = r['form'], 0
         else:
-            rows.append(dict(tax_year=year, item='agi', measure=measure,
-                             value=int(v.replace(',', ''))))
+            run += 1
+            r['form'], r['carried'] = last, run
+    return pages
 
-out_dir = os.path.join(DEST, 'checks')
-os.makedirs(out_dir, exist_ok=True)
-with open(os.path.join(out_dir, 'line_item_values.csv'), 'w', newline='') as f:
-    w = csv.DictWriter(f, ['tax_year', 'item', 'measure', 'value'])
-    w.writeheader(); w.writerows(rows)
-print('wrote %d values for %d tax years to %s' %
-      (len(rows), len({r['tax_year'] for r in rows}),
-       os.path.join(out_dir, 'line_item_values.csv')))
-if missing:
-    print('\nnot extracted:')
-    for x in missing:
-        print('  ' + x)
+
+def extract(path, tax_year):
+    doc = fitz.open(path)
+    source = os.path.basename(path)
+    rows = []
+    for page in classify(doc):
+        for label, value, desc in line_values(doc[page['pdf_page']]):
+            rows.append(dict(tax_year=tax_year, publication=4801,
+                             universe=page['universe'], form=page['form'],
+                             line=label, line_text=desc, measure=page['measure'],
+                             value=int(value.replace(',', '')),
+                             pdf_page=page['pdf_page'], source_file=source))
+    return doc, rows
+
+
+#-------
+# Main
+#-------
+
+SUMMARY_YEARS = range(2003, 2024)
+
+
+def main(dest, first, last):
+    src_dir = os.path.join(dest, 'national', 'line_items')
+    all_rows, check_rows, coverage, warnings = [], [], [], []
+
+    # The cover-page total is a plain text read, independent of the page
+    # classification, so it is collected for every vintage on disk.
+    for year in SUMMARY_YEARS:
+        path = os.path.join(src_dir, 'p4801_%d.pdf' % year)
+        if not os.path.exists(path):
+            continue
+        doc = fitz.open(path)
+        head = normalise('\n'.join(doc[i].get_text()
+                                    for i in range(min(8, doc.page_count))))
+        m = TOTAL_RETURNS.search(head)      # first hit is the all-returns total
+        if m:
+            check_rows.append(dict(tax_year=year, item='total_returns_filed',
+                                   measure='returns',
+                                   value=int(m.group(1).replace(',', ''))))
+        else:
+            warnings.append('TY%d: cover-page total not found' % year)
+
+    for year in range(first, last + 1):
+        path = os.path.join(src_dir, 'p4801_%d.pdf' % year)
+        if not os.path.exists(path):
+            continue
+        doc, rows = extract(path, year)
+        all_rows.extend(rows)
+
+        # The check items are selected from the same extraction rather than
+        # parsed a second way, so the harness tests the real parser.
+        agi = AGI_LINE.get(year)
+        for measure in ('returns', 'amount'):
+            hit = [r for r in rows
+                   if r['form'] == 'Form 1040' and r['universe'] == 'all returns'
+                   and r['line'] == agi and r['measure'] == measure]
+            if len(hit) == 1:
+                check_rows.append(dict(tax_year=year, item='agi',
+                                       measure=measure, value=hit[0]['value']))
+            else:
+                # More than one hit means pages are mislabelled -- exactly how
+                # a broken legend pattern showed up. Never silently drop it.
+                warnings.append('TY%d agi/%s: %d candidate rows, want 1'
+                                % (year, measure, len(hit)))
+        pages = classify(doc)
+        carried = max([p.get('carried', 0) for p in pages] or [0])
+        if carried > 4:
+            warnings.append('TY%d: %d consecutive pages inherited their form '
+                            'from an earlier page -- check the legend pattern'
+                            % (year, carried))
+        coverage.append((year, len(rows), len({r['form'] for r in rows}),
+                         len(set(r['pdf_page'] for r in rows)), len(pages)))
+
+    for sub, name, fields, data in (
+            ('aligned', 'line_items.csv',
+             ['tax_year', 'publication', 'universe', 'form', 'line', 'line_text',
+              'measure', 'value', 'pdf_page', 'source_file'], all_rows),
+            ('checks', 'line_item_values.csv',
+             ['tax_year', 'item', 'measure', 'value'], check_rows)):
+        out_dir = os.path.join(dest, sub)
+        os.makedirs(out_dir, exist_ok=True)
+        with open(os.path.join(out_dir, name), 'w', newline='') as f:
+            w = csv.DictWriter(f, fields)
+            w.writeheader()
+            w.writerows(data)
+
+    print('%-6s %8s %6s %14s' % ('year', 'values', 'forms', 'pages w/ values'))
+    for year, n, forms, pages, data_pages in coverage:
+        print('%-6d %8d %6d %8d / %-5d' % (year, n, forms, pages, data_pages))
+    print('\n%d values across %d tax years -> aligned/line_items.csv'
+          % (len(all_rows), len(coverage)))
+    print('%d check values -> checks/line_item_values.csv' % len(check_rows))
+    if warnings:
+        print('\nwarnings:')
+        for w in warnings:
+            print('  ' + w)
+
+
+if __name__ == '__main__':
+    if not 2 <= len(sys.argv) <= 4:
+        sys.exit('usage: parse_line_items.py <dest> [first_year] [last_year]')
+    main(sys.argv[1],
+         int(sys.argv[2]) if len(sys.argv) > 2 else 2018,
+         int(sys.argv[3]) if len(sys.argv) > 3 else 2023)

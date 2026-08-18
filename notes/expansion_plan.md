@@ -25,8 +25,8 @@ distribution][ira] · [Form W-2 statistics][w2].
 
 | Family | Coverage | Live? | Format | Files | Effort |
 |---|---|---|---|---|---|
-| Line items, Pub 4801 (individual) | TY2003–2023 | yes | PDF (form facsimiles) | 21 | **mirrored**; scraper in progress |
-| Line items, Pub 5385 (info returns) | TY2017–2023 | yes | PDF (one is a portfolio) | 6 URLs / 7 years | **mirrored**; scraper in progress |
+| Line items, Pub 4801 (individual) | TY2003–2023 | yes | PDF (form facsimiles) | 21 | **mirrored + Tier A scraped** |
+| Line items, Pub 5385 (info returns) | TY2017–2023 | yes | PDF (one is a portfolio) | 6 URLs / 7 years | **mirrored**; not yet scraped |
 | Sales of capital assets | 1985, 1997–1999, 2007–2015 (+ panels) | **no, ends TY2015** | xls/xlsx | ~70 | low |
 | Nonfarm sole proprietorship | T1/T2 1998–2023 NAICS (+ 1996–98 SIC); T3 2016–20, T4 2017–20 | yes (T1/T2) | xls | 68 | **done** |
 | IRA accumulation/distribution | T1–T4 2000–2023 (no 2003); T5–T10 shorter | yes | xls → xlsx 2017+ | 213 | **done** |
@@ -105,9 +105,13 @@ printed in the line's entry box (TY2023 p4801: 236 pages, 0 raster images,
 the corresponding **amount in $ thousands** — stated in the publication's own
 preamble and confirmed by the values.
 
-**Anchor on the form's drawn entry boxes, not on an "entry column".** A spike
-on the TY2023 Form 1040 pages (2026-08-17) settled this; three things kill the
-column approach:
+**Superseded 2026-08-17 by the Tier A build — anchor on the line label, not
+the entry box.** The boxes work for the Form 1040 but not in general: most
+schedules rule their entry cells with bare line segments rather than painting
+filled rectangles, so box detection finds nothing on them and silently yields
+no values. Box anchoring reached 41 of TY2023's 222 data pages; label
+adjacency reaches 179. See [line_items.md](line_items.md). The reasoning
+below still explains why an "entry column" is the wrong model:
 
 - the 1040 has **two** entry columns — a mid-page box for lines 2a–6a
   (x 257.4–328.1) and the right-margin box (x 504.8–575.5) — and other forms
@@ -436,10 +440,14 @@ families ≈ 400 files, well under 200 MB.
    note to `notes/national_bysize.md` so 1.4A is findable from both directions.
 4. **Mirror Pub 4801/5385 PDFs and stand up the check harness** — **done**
    2026-08-17: 27 files, `notes/line_items.md`, `parse_line_items.py`,
-   `run_checks.R`, `checks/`. 23 exact matches over TY2011–2023.
-5. **Build `parse_line_items.py` + `align_line_items.R` for Tier A**
-   (TY2018–2023), gated on the crosswalk passing exactly. This is the bulk of
-   the work.
+   `run_checks.R`, `checks/`.
+5. **Tier A scraper (TY2018–2023)** — **done** 2026-08-17. 12,853 values
+   across ~59 forms a year in `aligned/line_items.csv`, gated on 79
+   comparisons against Pub 1304: 78 exact, 1 known ±1 rounding difference, 0
+   unexplained. No separate `align_line_items.R` was needed — the checks read
+   the emitted panel directly. Remaining: six grid-layout forms (4136, 8283,
+   8938, 8994, 8997, Schedule EIC) whose values sit in matrix cells rather
+   than beside a line label, and the pre-2018 universe split.
 6. **Extend the crosswalk** to Schedule C ↔ sole prop, Schedule D ↔ 1.4A/SOCA,
    IRA lines ↔ IRA tables, Pub 5385 ↔ W-2 tables. Each new family then arrives
    with a validation story rather than on trust.

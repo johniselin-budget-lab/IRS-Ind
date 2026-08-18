@@ -36,12 +36,31 @@ if (length(args) >= 2 && args[1] == '--dest') dest = args[2]
 crosswalk = utils::read.csv(file.path(script_dir, 'checks', 'crosswalk_line_items.csv'),
                             stringsAsFactors = FALSE)
 # Differences already investigated and explained. Each entry pins an exact
-# expected difference for one (year, item, measure); anything else -- including
-# the same item differing by a different amount -- still fails.
+# expected difference for one comparison; anything else -- including the same
+# item differing by a different amount -- still fails.
 known = utils::read.csv(file.path(script_dir, 'checks', 'known_differences.csv'),
                         stringsAsFactors = FALSE)
-values    = utils::read.csv(file.path(dest, 'checks', 'line_item_values.csv'),
-                            stringsAsFactors = FALSE)
+
+# The checks read the real deliverable, aligned/line_items.csv, so a parser
+# regression fails here rather than passing a separately-derived side file.
+# The cover-page total is not a form line, so it comes from the summary file.
+lines   = utils::read.csv(file.path(dest, 'aligned', 'line_items.csv'),
+                          stringsAsFactors = FALSE)
+summary_values = utils::read.csv(file.path(dest, 'checks', 'line_item_values.csv'),
+                                 stringsAsFactors = FALSE)
+
+extracted = function(cw) {
+  if (cw$form == '(summary)') {
+    hit = summary_values[summary_values$tax_year == cw$tax_year &
+                         summary_values$item == cw$line &
+                         summary_values$measure == cw$measure, 'value']
+  } else {
+    hit = lines[lines$tax_year == cw$tax_year & lines$form == cw$form &
+                lines$universe == cw$universe & lines$line == cw$line &
+                lines$measure == cw$measure, 'value']
+  }
+  if (length(hit) == 1) hit else NA_real_   # 0 = missing, >1 = ambiguous
+}
 
 #--------------------------------------------
 # Read one "All returns" row from a Pub 1304 table
@@ -77,45 +96,47 @@ target_value = function(file, header_pattern, stub_pattern) {
 # Run the checks
 #----------------
 
-report = do.call(rbind, lapply(seq_len(nrow(values)), function(k) {
-  v  = values[k, ]
-  cw = crosswalk[crosswalk$item == v$item & crosswalk$measure == v$measure, ]
-  if (nrow(cw) != 1) {                     # extracted but not yet crosswalked
-    return(data.frame(tax_year = v$tax_year, item = v$item, measure = v$measure,
-                      pub4801 = v$value, pub1304 = NA_real_, diff = NA_real_,
-                      relation = NA_character_, stringsAsFactors = FALSE))
-  }
-  target = target_value(sub('\\{year\\}', v$tax_year, cw$target_file),
+report = do.call(rbind, lapply(seq_len(nrow(crosswalk)), function(k) {
+  cw     = crosswalk[k, ]
+  source = extracted(cw)
+  target = target_value(sub('\\{year\\}', cw$tax_year, cw$target_file),
                         cw$header_pattern, cw$stub_pattern)
-  data.frame(tax_year = v$tax_year, item = v$item, measure = v$measure,
-             pub4801 = v$value, pub1304 = target, diff = v$value - target,
-             relation = cw$relation, stringsAsFactors = FALSE)
+  data.frame(tax_year = cw$tax_year, form = cw$form, line = cw$line,
+             measure = cw$measure, pub4801 = source, pub1304 = target,
+             diff = source - target, relation = cw$relation,
+             stringsAsFactors = FALSE)
 }))
 
-report$status = ifelse(is.na(report$relation), 'no crosswalk',
+report$status = ifelse(is.na(report$pub4801), 'not extracted',
                 ifelse(is.na(report$pub1304), 'no target',
                 ifelse(report$relation == '==' & report$diff == 0, 'ok', 'MISMATCH')))
 
 # Demote documented differences, matched on the exact expected amount
 pinned = merge(report[report$status == 'MISMATCH', ], known,
-               by = c('tax_year', 'item', 'measure', 'diff'))
+               by = c('tax_year', 'line', 'measure', 'diff'))
 if (nrow(pinned) > 0) {
-  key = function(d) paste(d$tax_year, d$item, d$measure, d$diff)
+  key = function(d) paste(d$tax_year, d$line, d$measure, d$diff)
   report$status[key(report) %in% key(pinned)] = 'known diff'
 }
-report = report[order(report$item, report$tax_year), ]
+report = report[order(report$tax_year, report$line, report$measure), ]
 
 dir.create(file.path(dest, 'checks'), recursive = TRUE, showWarnings = FALSE)
 utils::write.csv(report, file.path(dest, 'checks', '_report.csv'), row.names = FALSE)
 
-print(report[, c('tax_year', 'item', 'measure', 'pub4801', 'pub1304', 'diff', 'status')],
-      row.names = FALSE)
+bad = report[report$status %in% c('MISMATCH', 'not extracted'), ]
+if (nrow(bad) > 0) {
+  print(bad[, c('tax_year', 'form', 'line', 'measure', 'pub4801', 'pub1304',
+                'diff', 'status')], row.names = FALSE)
+} else {
+  message('all ', nrow(report), ' comparisons resolved')
+}
+print(table(report$tax_year, report$status))
 
 n_ok  = sum(report$status == 'ok')
-n_bad = sum(report$status == 'MISMATCH')
+n_bad = sum(report$status %in% c('MISMATCH', 'not extracted'))
 message('\n', n_ok, ' exact matches, ',
         sum(report$status == 'known diff'), ' known differences, ',
         n_bad, ' unexplained mismatches, ',
         sum(report$status == 'no target'), ' without a Pub 1304 target, ',
-        sum(report$status == 'no crosswalk'), ' not yet crosswalked')
+        sum(report$status == 'not extracted'), ' not extracted')
 if (n_bad > 0) quit(status = 1)

@@ -3,3 +3,6 @@ data/
 
 # Scratch working files (probe sweeps, verification scripts)
 output/
+
+# Python bytecode
+__pycache__/

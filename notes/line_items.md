@@ -29,16 +29,20 @@ items agree **exactly**, not approximately. `run_checks.R` exploits this: it
 compares extracted line items against the Pub 1304 tables in the store and
 treats any difference as a defect to explain rather than a tolerance to widen.
 
-Result over the TY2011–2023 overlap (26 comparisons of total returns filed and
-Form 1040 AGI): **23 exact matches, 3 documented differences, 0 unexplained**.
+Result over **79 comparisons**: 78 exact matches, 1 documented difference, 0
+unexplained. TY2018–2023 is checked at 12 comparisons a year — AGI, taxable
+and tax-exempt interest, ordinary and qualified dividends and taxable income,
+each as both a return count and an amount, plus the cover-page total —
+and TY2011–2017 at the cover-page total. The checks read
+`aligned/line_items.csv` itself, so a parser regression fails the gate rather
+than passing a separately-derived side file.
 
-The three differences are all **exactly ±1 in the last digit** — TY2014 total
-returns (148,606,579 vs 148,606,578), TY2015 AGI and TY2017 AGI. Both sides'
-raw cells were read directly to confirm they are published that way. The two
-publications round the same underlying weighted estimate independently, so the
-final digit can disagree by one. They are pinned in
-`checks/known_differences.csv` with the exact expected difference, so the
-check stays strict: the same item differing by any other amount still fails.
+The one difference is **exactly ±1 in the last digit** — TY2014 total returns,
+148,606,579 against Pub 1304's 148,606,578. Both raw cells were read to confirm
+it is published that way: the two publications round the same weighted estimate
+independently, so the final digit can disagree by one. It is pinned in
+`checks/known_differences.csv` with its exact expected difference, so the check
+stays strict — the same item differing by any other amount still fails.
 
 ## Source-naming: three eras plus a moving target
 
@@ -78,27 +82,33 @@ assigned it: **28 publications, 0 disagreements**.
   parse the accessibility report instead. Decide on the **outer page count**:
   a true portfolio is a stub of ≤3 pages.
 
-## Extraction gotchas (what `parse_line_items.py` had to handle)
+## Extraction: anchor on the line label, not the entry box
 
-The estimates sit in the form's drawn entry boxes, so the boxes are the anchor
-— but three assumptions that hold for TY2023 fail elsewhere:
+An earlier spike concluded that the estimates sit in the form's **drawn entry
+boxes**, so the boxes were the anchor. That is true of the Form 1040 and
+badly wrong in general: **the 1040 paints filled rectangles behind its entry
+cells, but most schedules rule theirs with bare line segments**, so box
+detection finds nothing on them and returns no values at all — silently, since
+a page with no boxes simply yields an empty list. Anchoring on boxes covered
+41 of TY2023's 222 data pages; anchoring on the line label covers 179.
 
-- **Values are not always inside their box.** TY2018 prints each value ~5pt
-  *above* the rectangle. Strict containment silently drops the row; match the
-  nearest box within a small tolerance instead.
-- **Take the line label from the value's row, not the box's.** Forms print the
-  line number twice — left of the description and again beside the entry box
-  (TY2018 at x=477 versus the description column at x=104) — and the value
-  aligns with the second. Taking the rightmost label-shaped token left of the
-  value on its row also handles rows with two entry boxes (2a mid-page, 2b at
-  the margin) and ignores body-text numerals: a stray "1" from "Schedule 1,
-  line 22" otherwise captured TY2018's AGI row and dropped the value.
-- **A description can wrap onto two printed lines** with the box aligned to
-  the second (TY2018 line 7), so row text assembled from the box's own band is
-  only the tail of the description. This is why the AGI row is located by
-  **line number** from an explicit per-year map rather than by matching its
-  printed wording — the TY2018 redesign also drops the phrase "this is your
-  adjusted gross income" that every other vintage uses.
+The rule now: **a value is a numeric token immediately to the right of a line
+label that stands in one of the form's label columns.** Label columns are
+found per page as the x positions several label-shaped tokens share, which
+keeps body-text numerals out — "Attach Form 4797" sits ~180pt from the
+nearest label and is ignored, whereas a stray "1" from "Schedule 1, line 22"
+had previously captured TY2018's AGI row and dropped its value.
+
+Three further traps, all from TY2018:
+
+- **Forms print each line number twice** — left of the description and again
+  beside the entry column (x=477 versus x=104) — and the value aligns with
+  the second, so the label must be taken from the value's own row.
+- **A description can wrap onto two printed lines**, leaving the row text
+  only the tail of the description. Never key anything on `line_text`.
+- The AGI row is therefore located by **line number** from an explicit
+  per-year map, not by matching its printed wording, which the TY2018
+  redesign changes as well as wraps.
 
 Form 1040's AGI line: **37** (TY2003–2017), **7** (TY2018), **8b** (TY2019),
 **11** (TY2020–2023). TY2019 is the only year it sits on 8b.
@@ -107,15 +117,45 @@ Smaller traps: TY2013 typesets "filed" with an **fi ligature** that extracts as
 `fi led` — with a space; TY2014–15 put the summary count and its label on one
 **tab-separated** line where other years use a newline.
 
-## Coverage of the extractor today
+## What the scraper produces
 
-`parse_line_items.py` currently emits only the two check items. It gets both
-for **TY2011–2023**, the whole window where Pub 1304 targets exist. Pre-2011
-AGI extraction fails (TY2003–2008 find no 1040 page carrying line 37;
-TY2005/2009/2010 find the returns page but not the matching amounts page) —
-those vintages use an older layout and are Tier B/C work in
-[expansion_plan.md](expansion_plan.md). Total returns filed extracts cleanly
-for all 21 years.
+`parse_line_items.py <dest>` writes `aligned/line_items.csv`: one row per
+(tax year, form, universe, line, measure) with the value, the page it came
+from and a best-effort description. **12,853 values for TY2018–2023**, about
+2,000 a year across ~59 forms.
+
+Page classification comes from three independent signals: the measure from the
+page header ("Number of returns filed…" vs "Amounts of selected lines
+filed…"), the form from the bottom-of-form legend, and the universe from the
+table of contents, which is the only thing distinguishing the 1040's "All
+Returns Filed" pages from its "Electronically Filed Returns" pages — the
+pages themselves are identical in every other respect.
+
+Legend formats vary more than they look: `Form 1040 (2023)`,
+`Schedule C (Form 1040) 2023`, `Schedule 1 (Form 1040 or 1040-SR) 2019`,
+`Form 965-A (Rev. 1-2021)` and `Form 965-A (1-2019)` — the same form in two
+vintages, one with the "Rev." prefix and one without. A form's continuation
+pages carry no legend and inherit it from the page before, which is dangerous:
+when the TY2019 pattern stopped matching, 38 pages silently inherited "Form
+1040" and the 1040's own AGI line then had six candidate rows instead of one.
+The parser now reports any run of more than four inherited pages, and any
+ambiguous check selection, rather than picking one quietly.
+
+### Coverage and limits
+
+- **TY2018–2023 only.** From TY2017 back, a vintage repeats the Form 1040
+  under two or three universes that this TOC parse does not separate, so the
+  same line appears 2–3 times and the universe column would be wrong. Earlier
+  years can be requested explicitly and will warn; they are not emitted by
+  default. The cover-page total is a plain text read, unaffected by this, and
+  is collected for every vintage on disk.
+- **59 of TY2023's 65 forms** yield values. Six yield none — Form 4136, 8283,
+  8938, 8994, 8997 and Schedule EIC — and ten more are partial. These are
+  grid-layout forms whose values sit in matrix cells rather than beside a line
+  label, so the label-adjacency rule does not reach them. They need a cell
+  reconstruction pass from the ruling segments.
+- `line_text` is best effort and can be a fragment; it is for eyeballing, not
+  for keying.
 
 ## Known consumers
 

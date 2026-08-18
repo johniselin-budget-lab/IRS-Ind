@@ -43,9 +43,12 @@ python3 parse_line_items.py /path/to/store        # needs PyMuPDF (import fitz)
 Rscript run_checks.R --dest /path/to/store        # writes checks/_report.csv
 ```
 
-`run_checks.R` exits non-zero on any unexplained mismatch, so it can gate a
-build. Note that `module load R/...` swaps the Python environment on this
-cluster — run the two steps in separate shells.
+`parse_line_items.py` writes `aligned/line_items.csv` — every extracted line
+of every form, for the validated years TY2018–2023 (12,853 values, ~59 forms
+a year). `run_checks.R` then compares that panel against the Pub 1304 tables
+and exits non-zero on any unexplained mismatch, so it can gate a build. Note
+that `module load R/...` swaps the Python environment on this cluster — run
+the two steps in separate shells.
 
 Families for `--only` (comma-separated, default all): `geo` (the four
 by-geographic-area CSV sets and their documentation guides), `by_size` (the 14
@@ -82,8 +85,10 @@ national/line_items/ p4801_{year}.pdf                 Line item estimates: every
                     p5385_{year}.pdf                  of every form/schedule, no AGI
                                                       cut. p5385_2018-2019.pdf is one
                                                       PDF Portfolio holding both years
-checks/             line_item_values.csv              extracted check items, the report
-                    _report.csv                       from run_checks.R
+aligned/            line_items.csv                    every extracted form line,
+                                                      TY2018-2023 (see notes)
+checks/             line_item_values.csv              cover-page totals, all vintages
+                    _report.csv                       the run_checks.R report
 national/sole_prop/ sp_t{nn}_{year}.xls               Nonfarm sole proprietorships
                     sp_t{nn}_sic_{year}.xls           (Schedule C) by industry; the
                     sp_t02_expanded_2015.xls          canonical series is NAICS, _sic_
