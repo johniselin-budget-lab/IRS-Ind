@@ -19,6 +19,9 @@
 #                      county_{year}_noagi.csv.gz County income, county totals
 #   zip/               zip_{year}_agi.csv.gz      ZIP code data, by AGI class
 #                      zip_{year}_noagi.csv.gz    ZIP code data, ZIP totals
+#   national/ira/      ira_t{nn}_{year}.xls[x]    IRA accumulation/distribution,
+#                      ira_t{nn}_ci_{year}.xlsx   ten tables; ci = confidence
+#                      ira_t{nn}_cv_{year}.xlsx   intervals, cv = coeffs of var
 #   national/by_size/  income_sources_{year}.xls  SOI Complete-Report (Pub 1304)
 #                      capital_assets_{year}.xls  basic tables by size of AGI,
 #                      income_tax_items_{year}.xls NATIONAL (no geography) -- the
@@ -51,8 +54,10 @@
 #   Rscript download_irs_ind.R --dest /path/to/store 2017 2023
 #   Rscript download_irs_ind.R --only by_size               # one family only
 #
-# Families (--only, comma-separated; default all): geo, by_size. Flags may be
-# given in any order; the two positional arguments are the year range.
+# Families (--only, comma-separated; default all): geo, by_size, ira. Flags
+# may be given in any order; the two positional arguments are the year range.
+# Each family is clamped to the first year it publishes (see FIRST_YEAR), so
+# the default run covers 2000-2023 without probing years a family lacks.
 #
 # Budget Lab internal users: pass the lab's shared raw_data store (documented
 # internally) via --dest.
@@ -74,7 +79,12 @@ args = commandArgs(trailingOnly = TRUE)
 script_dir = dirname(sub('--file=', '', grep('--file=', commandArgs(), value = TRUE)[1]))
 if (is.na(script_dir) || script_dir == '') script_dir = '.'
 
-FAMILIES = c('geo', 'by_size')
+FAMILIES = c('geo', 'by_size', 'ira')
+
+# First tax year each family publishes. The default run spans their union
+# and every family is clamped to its own floor, so no year is fetched
+# pointlessly (IRA reaches back to 2000; the others start at 2011).
+FIRST_YEAR = c(geo = 2011, by_size = 2011, ira = 2000)
 
 dest = file.path(script_dir, 'data')
 only = FAMILIES
@@ -112,7 +122,7 @@ if (length(pos) == 2 && anyNA(suppressWarnings(as.integer(pos)))) {
   stop('year range must be two integers, got: ', paste(pos, collapse = ' '))
 }
 
-years = if (length(pos) == 2) as.integer(pos[1]):as.integer(pos[2]) else 2011:2023
+years = if (length(pos) == 2) as.integer(pos[1]):as.integer(pos[2]) else min(FIRST_YEAR):2023
 
 dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 message('Destination: ', normalizePath(dest))
@@ -232,11 +242,64 @@ targets_by_size = function(year) {
   )
 }
 
-# One flat target list for the families selected on the command line.
+# --- ira: accumulation and distribution of IRAs -----------------------------
+# Ten tables, TY2000-2023 (TY2003 was never published). Modern naming is
+# {yy}in{nn}ira.{xls,xlsx} with nn = the table number, .xls through TY2016 and
+# .xlsx from TY2017. TY2000-2004 number the FILES differently from the tables
+# the modern series uses, so those years need an explicit map: modern table ->
+# published file slot. Verified by opening the files -- 02in06ira.xls is
+# titled "Table 6 ... by Type" (modern Table 1), 02in09/04in05 are "by Filing
+# Status and Gender" (modern Table 7), and 04in06/04in07 are the traditional/
+# Roth contribution tables (modern Tables 5/6). Tables absent from a year's
+# map were not published that year. See notes/ira.md.
+IRA_SLOTS = list(
+  '2000' = c('1' = 1, '2' = 2, '3' = 3, '4' = 5, '7' = 4),
+  '2001' = c('1' = 1, '2' = 2, '3' = 3, '4' = 5, '7' = 4),
+  '2002' = c('1' = 6, '2' = 7, '3' = 8, '4' = 10, '7' = 9),
+  '2004' = c('1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 6, '6' = 7, '7' = 5)
+)
+
+ira_file = function(yy, year, slot, kind = '') {
+  stem = if (year == 2000) 'ir' else 'ira'    # TY2000 drops the final 'a'
+  ext  = if (year >= 2017) 'xlsx' else 'xls'
+  sprintf('%sin%02d%s%s.%s', yy, slot, stem, kind, ext)
+}
+
+targets_ira = function(year) {
+  yy    = sprintf('%02d', year %% 100)
+  slots = IRA_SLOTS[[as.character(year)]]
+  if (is.null(slots)) slots = setNames(1:10, 1:10)
+  ext   = if (year >= 2017) 'xlsx' else 'xls'
+
+  out = lapply(names(slots), function(tbl) {
+    list(url = file.path(SOI, ira_file(yy, year, slots[[tbl]])),
+         to  = sprintf('national/ira/ira_t%02d_%d.%s', as.integer(tbl), year, ext),
+         gz  = FALSE)
+  })
+
+  # Precision companions, published under the modern numbering only:
+  # confidence intervals from TY2022 (all ten tables), coefficients of
+  # variation from TY2018 for tables 1-7 (TY2019 has none -- the source page's
+  # 2019 "CV" links point at the data files themselves).
+  if (year >= 2018) {
+    out = c(out, lapply(1:10, function(t)
+      list(url = file.path(SOI, ira_file(yy, year, t, 'ci')),
+           to  = sprintf('national/ira/ira_t%02d_ci_%d.xlsx', t, year), gz = FALSE)))
+    out = c(out, lapply(1:7, function(t)
+      list(url = file.path(SOI, ira_file(yy, year, t, '-cv')),
+           to  = sprintf('national/ira/ira_t%02d_cv_%d.xlsx', t, year), gz = FALSE)))
+  }
+  out
+}
+
+# One flat target list for the families selected on the command line, each
+# clamped to the first year it publishes.
 targets = function(year, families) {
+  wanted = function(fam) fam %in% families && year >= FIRST_YEAR[[fam]]
   out = list()
-  if ('geo'     %in% families) out = c(out, targets_geo(year))
-  if ('by_size' %in% families) out = c(out, targets_by_size(year))
+  if (wanted('geo'))     out = c(out, targets_geo(year))
+  if (wanted('by_size')) out = c(out, targets_by_size(year))
+  if (wanted('ira'))     out = c(out, targets_ira(year))
   out
 }
 

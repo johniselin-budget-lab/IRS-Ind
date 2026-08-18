@@ -1,2 +1,5 @@
 # Downloaded data (use --dest for a shared location, or let it land here)
 data/
+
+# Scratch working files (probe sweeps, verification scripts)
+output/

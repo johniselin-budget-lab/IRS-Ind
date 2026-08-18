@@ -1,7 +1,7 @@
 # IRS-Ind
 
 Downloader for an organized mirror of IRS SOI **individual income tax
-statistics**, in two families:
+statistics**:
 
 - **data by geographic area** (state, county, ZIP):
   https://www.irs.gov/statistics/soi-tax-stats-data-by-geographic-area
@@ -9,6 +9,8 @@ statistics**, in two families:
   which resolve the top of the distribution finely — the geographic files
   stop at a `$1M+` class, and downstream reweighting needs the finer
   national top as an anchor.
+- **IRA accumulation and distribution** (Form 5498 matched to Form 1040):
+  the only SOI series carrying IRA *balances*, TY2000–2023.
 
 This repo holds the **code only** — data is downloaded on demand, either into
 the repo's own (gitignored) `data/` folder or to a separate location of your
@@ -17,21 +19,23 @@ Geographic files are stored as gzipped CSVs exactly as published by SOI (no
 transformation); R and most tools read `.csv.gz` directly
 (`readr::read_csv('file.csv.gz')`). The national by-size tables are published
 as `.xls` and stored **raw, un-gzipped** (`readxl::read_excel()` reads them
-directly).
+directly); the IRA tables likewise, `.xls` through TY2016 and `.xlsx` after.
 
 ## Usage
 
 ```bash
-Rscript download_irs_ind.R                        # -> ./data, years 2011-2023
+Rscript download_irs_ind.R                        # -> ./data, years 2000-2023
 Rscript download_irs_ind.R 2017 2023              # custom year range
 Rscript download_irs_ind.R --dest /path/to/store  # separate destination
 Rscript download_irs_ind.R --only by_size         # one family only
 ```
 
 Families for `--only` (comma-separated, default all): `geo` (the four
-by-geographic-area CSV sets and their documentation guides) and `by_size`
-(the 14 national Pub 1304 tables). Flags may be given in any order; the two
-positional arguments are the year range.
+by-geographic-area CSV sets and their documentation guides), `by_size` (the
+14 national Pub 1304 tables) and `ira` (ten IRA tables plus their precision
+companions). Flags may be given in any order; the two positional arguments
+are the year range. Each family is clamped to the first year it publishes,
+so the default run spans 2000–2023 without fetching years a family lacks.
 
 Budget Lab internal users: the canonical shared destination (already
 populated, with a consolidated `NOTES.md` at its root) is documented
@@ -55,6 +59,10 @@ county/             county_{year}_agi.csv.gz          County income data, by AGI
                     county_{year}_noagi.csv.gz        County income data, county totals
 zip/                zip_{year}_agi.csv.gz             ZIP code data, by AGI class
                     zip_{year}_noagi.csv.gz           ZIP code data, ZIP totals
+national/ira/       ira_t{nn}_{year}.xls[x]           IRA accumulation and distribution:
+                    ira_t{nn}_ci_{year}.xlsx          ten tables (nn = modern table
+                    ira_t{nn}_cv_{year}.xlsx          number), ci = confidence intervals,
+                                                      cv = coefficients of variation
 national/by_size/   income_sources_{year}.xls         SOI Complete-Report (Pub 1304) basic
                     capital_assets_{year}.xls         tables by size of AGI, NATIONAL (no
                     income_tax_items_{year}.xls       geo): the fine top-of-distribution
@@ -87,6 +95,10 @@ the files:
   combined-IRA/pension one-off)
 - [notes/county.md](notes/county.md) — county income data
 - [notes/zip.md](notes/zip.md) — ZIP code data
+- [notes/ira.md](notes/ira.md) — IRA accumulation and distribution (incl. the
+  TY2000–2004 file-vs-table numbering break, the missing TY2003, the BIFF4
+  TY2000 files `readxl` cannot open, and three files the source page fails to
+  link)
 - [notes/national_bysize.md](notes/national_bysize.md) — national Complete-Report
   tables by size of AGI (table→filename map, the fine top brackets, $thousands
   units, multi-row headers, TCJA-2018 combined IRA/pension one-off)
@@ -94,10 +106,10 @@ the files:
   aligned cross-year panels for the by-size tables, pushing them back to
   1996/1993, and geographic backfill options
 - [notes/expansion_plan.md](notes/expansion_plan.md) — the standing plan for
-  five families not yet mirrored: line-item estimates (Pub 4801/5385, with a
+  the families still to come: line-item estimates (Pub 4801/5385, with a
   PDF-scraping design and a harness that cross-checks them against the Pub
-  1304 tables), sales of capital assets, nonfarm sole proprietorships, IRA
-  statistics, and Form W-2 statistics
+  1304 tables), sales of capital assets, nonfarm sole proprietorships, and
+  Form W-2 statistics (IRA, its first family, is now mirrored)
 
 The SOI documentation guides themselves are downloaded alongside the data
 (`*docguide*` files in each destination folder).
@@ -115,6 +127,9 @@ The SOI documentation guides themselves are downloaded alongside the data
 | National by-size 2.5/3.1/3.2/3.3/3.5 | 2011–2023 | `{yy}in25ic` / `in31mt` / `in32tt` / `in33ar` / `in35tr` (`.xls`; published back to 1996–2003 under older suffixes, not pulled) |
 | National by-size 1.6 / 3.1A | 2011–2023 | `{yy}in16ag` / `in31amt` (`.xls`; published from 2008, pulled from the repo's 2011 floor) |
 | National by-size 1.7 / 2.7 | 2012–2023 / 2014–2023 | `{yy}in17dp` / `{yy}in27aca` (`.xls`; first published TY2012 and TY2014) |
+| IRA tables 1–4 | 2000–2023 (no 2003) | `{yy}in{nn}ira.xls` → `.xlsx` from 2017; TY2000–2004 number files differently from tables (see notes/ira.md), TY2000 stem is `ir` |
+| IRA tables 5–6 / 7 / 8 / 9–10 | 2004–2023 / 2000–02, 2004, 2013–2023 / 2017–21, 2023 / 2018–2023 | same stub; Table 8 skips TY2022 |
+| IRA confidence intervals / CVs | 2022–2023 / 2018, 2020–2022 | `{yy}in{nn}iraci.xlsx` / `{yy}in{nn}ira-cv.xlsx` (CVs cover tables 1–7 only; TY2019 has none) |
 
 Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 2017 and *number of individuals* from 2018 (TCJA); state rows include the 50
