@@ -11,6 +11,8 @@ statistics**:
   national top as an anchor.
 - **IRA accumulation and distribution** (Form 5498 matched to Form 1040):
   the only SOI series carrying IRA *balances*, TY2000–2023.
+- **nonfarm sole proprietorships** (Schedule C by industry, TY1996–2023) and
+  **Form W-2 statistics** (wages at the earner level, TY2019–2020).
 
 This repo holds the **code only** — data is downloaded on demand, either into
 the repo's own (gitignored) `data/` folder or to a separate location of your
@@ -24,7 +26,7 @@ directly); the IRA tables likewise, `.xls` through TY2016 and `.xlsx` after.
 ## Usage
 
 ```bash
-Rscript download_irs_ind.R                        # -> ./data, years 2000-2023
+Rscript download_irs_ind.R                        # -> ./data, years 1996-2023
 Rscript download_irs_ind.R 2017 2023              # custom year range
 Rscript download_irs_ind.R --dest /path/to/store  # separate destination
 Rscript download_irs_ind.R --only by_size         # one family only
@@ -32,10 +34,11 @@ Rscript download_irs_ind.R --only by_size         # one family only
 
 Families for `--only` (comma-separated, default all): `geo` (the four
 by-geographic-area CSV sets and their documentation guides), `by_size` (the
-14 national Pub 1304 tables) and `ira` (ten IRA tables plus their precision
-companions). Flags may be given in any order; the two positional arguments
-are the year range. Each family is clamped to the first year it publishes,
-so the default run spans 2000–2023 without fetching years a family lacks.
+14 national Pub 1304 tables), `ira` (ten IRA tables plus their precision
+companions), `sole_prop` (Schedule C by industry) and `w2` (Form W-2).
+Flags may be given in any order; the two positional arguments are the year
+range. Each family is clamped to the first year it publishes, so the default
+run spans 1996–2023 without fetching years a family lacks.
 
 Budget Lab internal users: the canonical shared destination (already
 populated, with a consolidated `NOTES.md` at its root) is documented
@@ -59,6 +62,13 @@ county/             county_{year}_agi.csv.gz          County income data, by AGI
                     county_{year}_noagi.csv.gz        County income data, county totals
 zip/                zip_{year}_agi.csv.gz             ZIP code data, by AGI class
                     zip_{year}_noagi.csv.gz           ZIP code data, ZIP totals
+national/sole_prop/ sp_t{nn}_{year}.xls               Nonfarm sole proprietorships
+                    sp_t{nn}_sic_{year}.xls           (Schedule C) by industry; the
+                    sp_t02_expanded_2015.xls          canonical series is NAICS, _sic_
+                                                      are the 1996-98 SIC companions
+national/w2/        w2_t{n}_{year}.xlsx               Form W-2 statistics: wages and
+                                                      deferrals at the earner level
+                                                      (multi-sheet workbooks)
 national/ira/       ira_t{nn}_{year}.xls[x]           IRA accumulation and distribution:
                     ira_t{nn}_ci_{year}.xlsx          ten tables (nn = modern table
                     ira_t{nn}_cv_{year}.xlsx          number), ci = confidence intervals,
@@ -99,6 +109,12 @@ the files:
   TY2000–2004 file-vs-table numbering break, the missing TY2003, the BIFF4
   TY2000 files `readxl` cannot open, and three files the source page fails to
   link)
+- [notes/sole_prop.md](notes/sole_prop.md) — nonfarm sole proprietorships
+  (incl. the TY1998 SIC/NAICS double publication that would otherwise break a
+  panel at its seam, the `96spo1ig.xls` typo, and the TY2015 "Table 3" that is
+  really Table 2)
+- [notes/w2.md](notes/w2.md) — Form W-2 statistics (TY2019–2020 only;
+  multi-sheet workbooks with a different sheet count per table)
 - [notes/national_bysize.md](notes/national_bysize.md) — national Complete-Report
   tables by size of AGI (table→filename map, the fine top brackets, $thousands
   units, multi-row headers, TCJA-2018 combined IRA/pension one-off)
@@ -130,6 +146,10 @@ The SOI documentation guides themselves are downloaded alongside the data
 | IRA tables 1–4 | 2000–2023 (no 2003) | `{yy}in{nn}ira.xls` → `.xlsx` from 2017; TY2000–2004 number files differently from tables (see notes/ira.md), TY2000 stem is `ir` |
 | IRA tables 5–6 / 7 / 8 / 9–10 | 2004–2023 / 2000–02, 2004, 2013–2023 / 2017–21, 2023 / 2018–2023 | same stub; Table 8 skips TY2022 |
 | IRA confidence intervals / CVs | 2022–2023 / 2018, 2020–2022 | `{yy}in{nn}iraci.xlsx` / `{yy}in{nn}ira-cv.xlsx` (CVs cover tables 1–7 only; TY2019 has none) |
+| Sole prop tables 1–2 | 1998–2023 (NAICS) | `{yy}sp01br` / `{yy}sp02is` from 2004 and 1999; 2000–03 each differ; TY1998 NAICS is `98sp03ic`/`98sp04ic` (see notes/sole_prop.md) |
+| Sole prop tables 1–2, SIC era | 1996–1998 | `{yy}sp01ig`/`sp02ig` (1997), `98sp01ic`/`98sp02ic`; **TY1996 Table 1 is `96spo1ig.xls`** — letter `o`, unpadded |
+| Sole prop tables 3 / 4 | 2016–2020 / 2017–2020 | `16sp03br` then `{yy}sp03szbr`; `{yy}sp04ra`. Both absent from TY2021 |
+| Form W-2 tables 1–4 | 2019–2020 only | `{yy}in0{n}w2all.xlsx`; TY2021+ probed and absent |
 
 Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 2017 and *number of individuals* from 2018 (TCJA); state rows include the 50

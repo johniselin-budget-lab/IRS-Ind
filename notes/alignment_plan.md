@@ -20,11 +20,12 @@ Sources: [Pub 1304 by-size-of-AGI page][p1304] · geographic pages:
 
 ## Where things stand
 
-The store mirrors five families — four geographic (CSV, already tidy:
-consumers read them directly, no alignment layer needed beyond the
-documented variable chronology in the notes) and **14 national by-size
-Pub 1304 tables** (TY2011–2023, raw `.xls`). Unlike IRS-Corp, there are
-**no aligned panels yet** — the by-size tables are the alignment target.
+The store mirrors four geographic families (CSV, already tidy: consumers
+read them directly, no alignment layer needed beyond the documented variable
+chronology in the notes), **14 national by-size Pub 1304 tables** (TY2011–2023,
+raw `.xls`), and three national families added 2026-08-17 — IRA (213 files),
+sole proprietorship (68) and Form W-2 (8). Unlike IRS-Corp, there are **no
+aligned panels yet** — the by-size tables are the alignment target.
 
 ## Tier 1 — align the 14 mirrored by-size tables (2011–2023)
 
@@ -100,10 +101,16 @@ a cross-validation harness that checks parsed line items against the Pub 1304
 tables already in the store. See **[expansion_plan.md](expansion_plan.md)**.
 
 Alignment-relevant summary: sole prop Tables 1–2 are the durable series
-(1996–2023, fresher than the geographic files) and align at NAICS sector
+(NAICS 1998–2023, fresher than the geographic files) and align at sector
 level like the corporate industry tables; IRA Tables 2/3/9/10 are by size or
 percentile of AGI and slot into the same distributional use as the by-size
 panels below.
+
+**Update (2026-08-17):** IRA, sole proprietorship and W-2 are now mirrored
+(`notes/ira.md`, `notes/sole_prop.md`, `notes/w2.md`). One correction to
+Tier 2 above: the sole prop SIC era need not be cut at 1999, because TY1998
+was published on **both** SIC and NAICS bases, giving a genuine bridge year
+for a crosswalk.
 
 ## Recommended order
 
@@ -113,9 +120,10 @@ panels below.
 2. **Align 3.3 and 3.5**, then the rest of the 14 as demand dictates.
 3. **Extend the by-size downloader pre-2011** (filename maps + BIFF
    format check) and stretch the aligned panels back to 1996/1993.
-4. **The five new families** ([expansion_plan.md](expansion_plan.md)):
-   downloader refactor, mirror all five, then the line-item scraper and its
-   cross-check harness; sole prop sector panels (Tables 1–2, 1999–2023) and
-   IRA by-AGI panels follow, reusing the same engine.
+4. **The new families** ([expansion_plan.md](expansion_plan.md)): IRA, sole
+   prop and W-2 are mirrored; still to come are the line-item scraper with
+   its cross-check harness and the capital-assets series. Sole prop sector
+   panels (Tables 1–2, 1998–2023) and IRA by-AGI panels follow, reusing the
+   same engine.
 5. **Geographic backfill** (county, then ZIP) when a consumer needs
    pre-2011 geography; HT2 per-state fan-out only on demonstrated need.

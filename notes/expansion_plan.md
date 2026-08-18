@@ -28,9 +28,9 @@ distribution][ira] · [Form W-2 statistics][w2].
 | Line items, Pub 4801 (individual) | TY2003–2023 | yes | PDF (form facsimiles) | 21 | high — scraper |
 | Line items, Pub 5385 (info returns) | TY2017–2023 | yes | PDF (one is a portfolio) | 6 URLs / 7 years | high — scraper |
 | Sales of capital assets | 1985, 1997–1999, 2007–2015 (+ panels) | **no, ends TY2015** | xls/xlsx | ~70 | low |
-| Nonfarm sole proprietorship | T1/T2 1996–2023; T3/T4 2017–2020 | yes (T1/T2) | xls | ~70 | low |
+| Nonfarm sole proprietorship | T1/T2 1998–2023 NAICS (+ 1996–98 SIC); T3 2016–20, T4 2017–20 | yes (T1/T2) | xls | 68 | **done** |
 | IRA accumulation/distribution | T1–T4 2000–2023 (no 2003); T5–T10 shorter | yes | xls → xlsx 2017+ | 213 | **done** |
-| Form W-2 statistics | TY2019–2020 only | stalled | xlsx | 8 | trivial |
+| Form W-2 statistics | TY2019–2020 only | stalled | xlsx | 8 | **done** |
 
 Three of the five are pure download-and-document work. The line-item
 publications are the substantial build, and they are also the piece that pays
@@ -405,9 +405,9 @@ families ≈ 400 files, well under 200 MB.
 ## 9. Sequencing
 
 1. **Downloader refactor** (§7) — prerequisite for everything, half a day.
-2. **Mirror the three easy families**: IRA (**done** 2026-08-17 — 213 files,
-   `notes/ira.md`), then sole proprietorship and W-2. Pure download plus one
-   notes file each in the style of `notes/ht2.md`.
+2. **Mirror the three easy families** — all **done** 2026-08-17: IRA (213
+   files, `notes/ira.md`), sole proprietorship (68, `notes/sole_prop.md`) and
+   W-2 (8, `notes/w2.md`).
 3. **Mirror capital assets** as a closed series; add the TY2016+ successor
    note to `notes/national_bysize.md` so 1.4A is findable from both directions.
 4. **Mirror Pub 4801/5385 PDFs** and stand up the check harness on the two

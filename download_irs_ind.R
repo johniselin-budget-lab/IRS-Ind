@@ -19,6 +19,10 @@
 #                      county_{year}_noagi.csv.gz County income, county totals
 #   zip/               zip_{year}_agi.csv.gz      ZIP code data, by AGI class
 #                      zip_{year}_noagi.csv.gz    ZIP code data, ZIP totals
+#   national/sole_prop/ sp_t{nn}_{year}.xls       Nonfarm sole proprietorship
+#                      sp_t{nn}_sic_{year}.xls    (Schedule C); _sic = the
+#                                                 1996-98 SIC-era companions
+#   national/w2/       w2_t{n}_{year}.xlsx        Form W-2 statistics
 #   national/ira/      ira_t{nn}_{year}.xls[x]    IRA accumulation/distribution,
 #                      ira_t{nn}_ci_{year}.xlsx   ten tables; ci = confidence
 #                      ira_t{nn}_cv_{year}.xlsx   intervals, cv = coeffs of var
@@ -54,10 +58,11 @@
 #   Rscript download_irs_ind.R --dest /path/to/store 2017 2023
 #   Rscript download_irs_ind.R --only by_size               # one family only
 #
-# Families (--only, comma-separated; default all): geo, by_size, ira. Flags
-# may be given in any order; the two positional arguments are the year range.
-# Each family is clamped to the first year it publishes (see FIRST_YEAR), so
-# the default run covers 2000-2023 without probing years a family lacks.
+# Families (--only, comma-separated; default all): geo, by_size, ira,
+# sole_prop, w2. Flags may be given in any order; the two positional
+# arguments are the year range. Each family is clamped to the first year it
+# publishes (see FIRST_YEAR), so the default run covers 1996-2023 without
+# probing years a family lacks.
 #
 # Budget Lab internal users: pass the lab's shared raw_data store (documented
 # internally) via --dest.
@@ -79,12 +84,13 @@ args = commandArgs(trailingOnly = TRUE)
 script_dir = dirname(sub('--file=', '', grep('--file=', commandArgs(), value = TRUE)[1]))
 if (is.na(script_dir) || script_dir == '') script_dir = '.'
 
-FAMILIES = c('geo', 'by_size', 'ira')
+FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2')
 
 # First tax year each family publishes. The default run spans their union
 # and every family is clamped to its own floor, so no year is fetched
 # pointlessly (IRA reaches back to 2000; the others start at 2011).
-FIRST_YEAR = c(geo = 2011, by_size = 2011, ira = 2000)
+FIRST_YEAR = c(geo = 2011, by_size = 2011, ira = 2000,
+               sole_prop = 1996, w2 = 2019)
 
 dest = file.path(script_dir, 'data')
 only = FAMILIES
@@ -292,14 +298,86 @@ targets_ira = function(year) {
   out
 }
 
+# --- sole_prop: nonfarm sole proprietorships (Schedule C) -------------------
+# Tables 1-2 are the durable series and run 1998-2023; Table 3 (by size of
+# business receipts) covers 2016-2020 and Table 4 (Schedule C returns by AGI,
+# marital status, age and industry) 2017-2020. Both were probed as absent for
+# TY2021+ on 2026-08-17.
+#
+# TY1998 is the SIC -> NAICS transition and published BOTH classifications:
+# its Tables 1-2 are SIC and its Tables 3-4 are the NAICS versions. The
+# canonical sp_t{nn}_{year} series is therefore NAICS throughout (taking
+# sp03ic/sp04ic for 1998), and the SIC pair is stored alongside as
+# sp_t{nn}_sic_{year}. Verified by opening the files -- see notes/sole_prop.md.
+SP_STEM = list('1' = 'sp01br', '2' = 'sp02is', '3' = 'sp03szbr', '4' = 'sp04ra')
+SP_YEARS = list('1' = 1998:2023, '2' = 1998:2023, '3' = 2016:2020, '4' = 2017:2020)
+SP_OVERRIDE = list(
+  '1' = c('1998' = 'sp03ic', '2000' = 'sp01is', '2001' = 'sp01ic',
+          '2002' = 'sp01is', '2003' = 'sp01cs'),
+  '2' = c('1998' = 'sp04ic', '2001' = 'sp02ic', '2003' = 'sp02cs'),
+  '3' = c('2016' = 'sp03br')
+)
+SP_SIC = list(
+  '1996' = c('1' = 'spo1ig', '2' = 'sp02ig'),   # Table 1 has a letter o, not 01
+  '1997' = c('1' = 'sp01ig', '2' = 'sp02ig'),
+  '1998' = c('1' = 'sp01ic', '2' = 'sp02ic')
+)
+
+targets_sole_prop = function(year) {
+  yy  = sprintf('%02d', year %% 100)
+  key = as.character(year)
+  out = list()
+
+  for (tbl in names(SP_STEM)) {
+    if (!(year %in% SP_YEARS[[tbl]])) next
+    ov   = SP_OVERRIDE[[tbl]]
+    stem = if (!is.null(ov) && key %in% names(ov)) unname(ov[[key]]) else SP_STEM[[tbl]]
+    out  = c(out, list(list(
+      url = file.path(SOI, sprintf('%s%s.xls', yy, stem)),
+      to  = sprintf('national/sole_prop/sp_t%02d_%d.xls', as.integer(tbl), year),
+      gz  = FALSE)))
+  }
+
+  sic = SP_SIC[[key]]
+  for (tbl in names(sic)) {
+    out = c(out, list(list(
+      url = file.path(SOI, sprintf('%s%s.xls', yy, sic[[tbl]])),
+      to  = sprintf('national/sole_prop/sp_t%02d_sic_%d.xls', as.integer(tbl), year),
+      gz  = FALSE)))
+  }
+
+  # TY2015 one-off: published as "Table 3" but carrying Table 2's content --
+  # an expanded income statement. Named for the content, not the caption.
+  if (year == 2015) out = c(out, list(list(
+    url = file.path(SOI, '15sp03isexpanded.xls'),
+    to  = 'national/sole_prop/sp_t02_expanded_2015.xls', gz = FALSE)))
+
+  out
+}
+
+# --- w2: Form W-2 statistics ------------------------------------------------
+# Four tables cross-tabulating wage income, elective retirement contributions
+# and the retirement-plan indicator by age, sex, size of wages and size of AGI.
+# TY2019-2020 only; TY2021+ probed and absent 2026-08-17. The stub is stable,
+# so a new year is picked up automatically once SOI publishes it.
+targets_w2 = function(year) {
+  yy = sprintf('%02d', year %% 100)
+  lapply(1:4, function(t)
+    list(url = file.path(SOI, sprintf('%sin0%dw2all.xlsx', yy, t)),
+         to  = sprintf('national/w2/w2_t%d_%d.xlsx', t, year),
+         gz  = FALSE))
+}
+
 # One flat target list for the families selected on the command line, each
 # clamped to the first year it publishes.
 targets = function(year, families) {
   wanted = function(fam) fam %in% families && year >= FIRST_YEAR[[fam]]
   out = list()
-  if (wanted('geo'))     out = c(out, targets_geo(year))
-  if (wanted('by_size')) out = c(out, targets_by_size(year))
-  if (wanted('ira'))     out = c(out, targets_ira(year))
+  if (wanted('geo'))       out = c(out, targets_geo(year))
+  if (wanted('by_size'))   out = c(out, targets_by_size(year))
+  if (wanted('ira'))       out = c(out, targets_ira(year))
+  if (wanted('sole_prop')) out = c(out, targets_sole_prop(year))
+  if (wanted('w2'))        out = c(out, targets_w2(year))
   out
 }
 
