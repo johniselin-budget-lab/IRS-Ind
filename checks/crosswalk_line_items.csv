@@ -1,0 +1,3 @@
+item,measure,target_file,header_pattern,stub_pattern,relation,note
+total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,Pub 4801 cover total vs Table 1.1 all-returns count
+agi,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,"1040 AGI line vs Table 1.1 AGI less deficit, All returns panel"

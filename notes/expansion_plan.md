@@ -25,8 +25,8 @@ distribution][ira] · [Form W-2 statistics][w2].
 
 | Family | Coverage | Live? | Format | Files | Effort |
 |---|---|---|---|---|---|
-| Line items, Pub 4801 (individual) | TY2003–2023 | yes | PDF (form facsimiles) | 21 | high — scraper |
-| Line items, Pub 5385 (info returns) | TY2017–2023 | yes | PDF (one is a portfolio) | 6 URLs / 7 years | high — scraper |
+| Line items, Pub 4801 (individual) | TY2003–2023 | yes | PDF (form facsimiles) | 21 | **mirrored**; scraper in progress |
+| Line items, Pub 5385 (info returns) | TY2017–2023 | yes | PDF (one is a portfolio) | 6 URLs / 7 years | **mirrored**; scraper in progress |
 | Sales of capital assets | 1985, 1997–1999, 2007–2015 (+ panels) | **no, ends TY2015** | xls/xlsx | ~70 | low |
 | Nonfarm sole proprietorship | T1/T2 1998–2023 NAICS (+ 1996–98 SIC); T3 2016–20, T4 2017–20 | yes (T1/T2) | xls | 68 | **done** |
 | IRA accumulation/distribution | T1–T4 2000–2023 (no 2003); T5–T10 shorter | yes | xls → xlsx 2017+ | 213 | **done** |
@@ -131,8 +131,11 @@ Python helpers beside R aligners in IRS-Corp (`read_biff4.py`,
 
 Algorithm:
 
-1. Open the PDF; if `embfile_count() > 0`, unwrap and process each embedded
-   document separately, keyed by its cover-page year.
+1. Open the PDF. Treat it as a portfolio **only if its own page count is ≤3**
+   and it has embedded files — `embfile_count() > 0` alone is wrong, because
+   TY2022's p4801 is a normal 238-page publication carrying an accessibility
+   report, and unwrapping it would skip the entire publication. For a real
+   portfolio, process each embedded document keyed by its cover-page year.
 2. Read the TOC pages (3–6 in the TY2023 vintage) to map *section* → *printed
    page*, then resolve printed page → PDF page index by offset. Cross-check
    against each page's own running header rather than trusting either alone.
@@ -207,6 +210,27 @@ value, target value, difference, pct, status). Rules:
 
 This harness is worth building even before the scraper is complete: the
 2-row TY2023 check above already runs.
+
+### Harness result (2026-08-17) — the equality rule holds
+
+Both publications are mirrored and the harness runs. Over the TY2011–2023
+overlap, comparing total returns filed and Form 1040 AGI: **23 exact matches,
+3 documented differences, 0 unexplained**.
+
+This answers the first open question below. The universes do match in every
+year, so equality is the right rule — but the published figures can differ by
+**exactly ±1 in the last digit**, because the two publications round the same
+weighted estimate independently. Three cases (TY2014 total returns, TY2015 and
+TY2017 AGI) are pinned in `checks/known_differences.csv` with their exact
+expected difference, so anything else still fails. Both sides' raw cells were
+read to confirm the difference is published, not parsed.
+
+Corrections the mirroring forced on the design above, all in
+[line_items.md](line_items.md): values are not always *inside* their entry box
+(TY2018 prints ~5pt above), the line label must come from the value's row
+rather than the box's, and the AGI row must be found by an explicit per-year
+line number (37 → 7 → 8b → 11) because the TY2018 redesign drops the wording
+every other vintage uses.
 
 ### Spike result (2026-08-17)
 
@@ -410,9 +434,9 @@ families ≈ 400 files, well under 200 MB.
    W-2 (8, `notes/w2.md`).
 3. **Mirror capital assets** as a closed series; add the TY2016+ successor
    note to `notes/national_bysize.md` so 1.4A is findable from both directions.
-4. **Mirror Pub 4801/5385 PDFs** and stand up the check harness on the two
-   items that already validate (total returns, AGI) — proves the plumbing
-   before the parser exists.
+4. **Mirror Pub 4801/5385 PDFs and stand up the check harness** — **done**
+   2026-08-17: 27 files, `notes/line_items.md`, `parse_line_items.py`,
+   `run_checks.R`, `checks/`. 23 exact matches over TY2011–2023.
 5. **Build `parse_line_items.py` + `align_line_items.R` for Tier A**
    (TY2018–2023), gated on the crosswalk passing exactly. This is the bulk of
    the work.
@@ -425,9 +449,9 @@ families ≈ 400 files, well under 200 MB.
 
 ## 10. Open questions
 
-- Does Pub 4801's "returns filed" universe match Pub 1304's exactly in every
-  year, or only in TY2023 where it was checked? Run the two-item check across
-  all overlapping years before trusting equality as the harness rule.
+- ~~Does Pub 4801's "returns filed" universe match Pub 1304's exactly in every
+  year?~~ **Answered 2026-08-17**: yes for TY2011–2023, with three ±1
+  last-digit rounding differences now pinned. Equality is the harness rule.
 - Are Pub 4801's electronically-filed panels worth carrying, or is the
   all-returns universe sufficient for the intended consumers?
 - Sole prop Tables 3/4 and the W-2 tables: discontinued or merely slow? Check

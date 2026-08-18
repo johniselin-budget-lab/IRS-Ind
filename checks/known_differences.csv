@@ -1,0 +1,4 @@
+tax_year,item,measure,diff,reason
+2014,total_returns_filed,returns,1,"Pub 4801 prints 148,606,579 where Pub 1304 Table 1.1 prints 148,606,578 -- both raw cells verified 2026-08-17. The two publications round the same weighted estimate independently, so the last digit can differ by 1."
+2015,agi,amount,1,"Pub 4801 10,210,310,103 vs Pub 1304 10,210,310,102 (raw cells verified); independent last-digit rounding."
+2017,agi,amount,1,"Pub 4801 11,009,900,156 vs Pub 1304 11,009,900,155 (raw cells verified); independent last-digit rounding."

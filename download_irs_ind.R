@@ -19,6 +19,8 @@
 #                      county_{year}_noagi.csv.gz County income, county totals
 #   zip/               zip_{year}_agi.csv.gz      ZIP code data, by AGI class
 #                      zip_{year}_noagi.csv.gz    ZIP code data, ZIP totals
+#   national/line_items/ p4801_{year}.pdf          SOI line item estimates: every
+#                      p5385_{year}.pdf           form/schedule line, no AGI cut
 #   national/sole_prop/ sp_t{nn}_{year}.xls       Nonfarm sole proprietorship
 #                      sp_t{nn}_sic_{year}.xls    (Schedule C); _sic = the
 #                                                 1996-98 SIC-era companions
@@ -59,10 +61,10 @@
 #   Rscript download_irs_ind.R --only by_size               # one family only
 #
 # Families (--only, comma-separated; default all): geo, by_size, ira,
-# sole_prop, w2. Flags may be given in any order; the two positional
-# arguments are the year range. Each family is clamped to the first year it
-# publishes (see FIRST_YEAR), so the default run covers 1996-2023 without
-# probing years a family lacks.
+# sole_prop, w2, line_items. Flags may be given in any order; the two
+# positional arguments are the year range. Each family is clamped to the
+# first year it publishes (see FIRST_YEAR), so the default run covers
+# 1996-2023 without probing years a family lacks.
 #
 # Budget Lab internal users: pass the lab's shared raw_data store (documented
 # internally) via --dest.
@@ -84,13 +86,13 @@ args = commandArgs(trailingOnly = TRUE)
 script_dir = dirname(sub('--file=', '', grep('--file=', commandArgs(), value = TRUE)[1]))
 if (is.na(script_dir) || script_dir == '') script_dir = '.'
 
-FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2')
+FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items')
 
 # First tax year each family publishes. The default run spans their union
 # and every family is clamped to its own floor, so no year is fetched
 # pointlessly (IRA reaches back to 2000; the others start at 2011).
 FIRST_YEAR = c(geo = 2011, by_size = 2011, ira = 2000,
-               sole_prop = 1996, w2 = 2019)
+               sole_prop = 1996, w2 = 2019, line_items = 2003)
 
 dest = file.path(script_dir, 'data')
 only = FAMILIES
@@ -137,7 +139,9 @@ message('Families:    ', paste(only, collapse = ', '))
 # Source directory on irs.gov. Targets carry a COMPLETE url, so families that
 # publish elsewhere (/pub/irs-pdf, /pub/irs-prior, /pub/irs-tai) can name their
 # own directory without touching the fetch machinery.
-SOI = 'https://www.irs.gov/pub/irs-soi'
+SOI       = 'https://www.irs.gov/pub/irs-soi'
+IRS_PDF   = 'https://www.irs.gov/pub/irs-pdf'      # current revision of a pub
+IRS_PRIOR = 'https://www.irs.gov/pub/irs-prior'    # superseded revisions
 
 #---------------------------
 # Source file specifications
@@ -368,16 +372,74 @@ targets_w2 = function(year) {
          gz  = FALSE))
 }
 
+# --- line_items: Pub 4801 / Pub 5385 line item estimates --------------------
+# Estimated number of returns and amount for EVERY line of every form and
+# schedule -- far more line detail than Pub 1304, with no AGI dimension. Both
+# publications are PDFs printed on facsimiles of the forms themselves.
+#
+# Three filename eras plus a moving current-revision URL, and the revision
+# token is a publication date that cannot be derived from the tax year, so
+# the map is explicit. The source page is the only authority for it.
+#
+# NOTE: /pub/irs-pdf/p4801.pdf always holds the NEWEST tax year. When TY2024
+# publishes, that URL changes content and the TY2023 revision moves to
+# /pub/irs-prior/. manifest.csv's md5 is what catches the swap -- re-check
+# the source page's year -> URL map whenever a new year is expected.
+P4801 = c(
+  setNames(file.path(SOI, sprintf('%dlinecnt.pdf', 2004:2007)), 2004:2007),
+  setNames(file.path(SOI, sprintf('%02dinlinecount.pdf', (2008:2016) %% 100)), 2008:2016),
+  c('2003' = file.path(SOI, '03linecnt.pdf'),
+    '2017' = file.path(IRS_PRIOR, 'p4801--2019.pdf'),
+    '2018' = file.path(IRS_PRIOR, 'p4801--2020.pdf'),
+    '2019' = file.path(IRS_PRIOR, 'p4801--2021.pdf'),
+    '2020' = file.path(IRS_PRIOR, 'p4801--2022.pdf'),
+    '2021' = file.path(IRS_PRIOR, 'p4801--2024.pdf'),
+    '2022' = file.path(IRS_PRIOR, 'p4801--122024.pdf'),
+    '2023' = file.path(IRS_PDF,   'p4801.pdf'))
+)
+
+# Pub 5385 (information returns). TY2018 and TY2019 share ONE url: it is a PDF
+# Portfolio wrapping both revisions as embedded files, so it is fetched once
+# and stored under a range name rather than downloaded twice. See notes.
+P5385 = c(
+  '2017' = file.path(IRS_PRIOR, 'p5385--2019.pdf'),
+  '2018' = file.path(IRS_PRIOR, 'p5385--2021.pdf'),
+  '2020' = file.path(IRS_PRIOR, 'p5385--2023.pdf'),
+  '2021' = file.path(IRS_PRIOR, 'p5385--2024.pdf'),
+  '2022' = file.path(IRS_PRIOR, 'p5385--042025.pdf'),
+  '2023' = file.path(IRS_PDF,   'p5385.pdf')
+)
+P5385_NAME = c('2018' = 'p5385_2018-2019.pdf')     # the portfolio's two years
+
+targets_line_items = function(year) {
+  key = as.character(year)
+  out = list()
+  if (key %in% names(P4801)) {
+    out = c(out, list(list(url = unname(P4801[key]),
+                           to  = sprintf('national/line_items/p4801_%d.pdf', year),
+                           gz  = FALSE)))
+  }
+  if (key %in% names(P5385)) {
+    name = if (key %in% names(P5385_NAME)) unname(P5385_NAME[key])
+           else sprintf('p5385_%d.pdf', year)
+    out = c(out, list(list(url = unname(P5385[key]),
+                           to  = file.path('national/line_items', name),
+                           gz  = FALSE)))
+  }
+  out
+}
+
 # One flat target list for the families selected on the command line, each
 # clamped to the first year it publishes.
 targets = function(year, families) {
   wanted = function(fam) fam %in% families && year >= FIRST_YEAR[[fam]]
   out = list()
-  if (wanted('geo'))       out = c(out, targets_geo(year))
-  if (wanted('by_size'))   out = c(out, targets_by_size(year))
-  if (wanted('ira'))       out = c(out, targets_ira(year))
-  if (wanted('sole_prop')) out = c(out, targets_sole_prop(year))
-  if (wanted('w2'))        out = c(out, targets_w2(year))
+  if (wanted('geo'))        out = c(out, targets_geo(year))
+  if (wanted('by_size'))    out = c(out, targets_by_size(year))
+  if (wanted('ira'))        out = c(out, targets_ira(year))
+  if (wanted('sole_prop'))  out = c(out, targets_sole_prop(year))
+  if (wanted('w2'))         out = c(out, targets_w2(year))
+  if (wanted('line_items')) out = c(out, targets_line_items(year))
   out
 }
 

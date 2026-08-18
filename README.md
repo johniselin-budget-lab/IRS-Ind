@@ -13,6 +13,9 @@ statistics**:
   the only SOI series carrying IRA *balances*, TY2000–2023.
 - **nonfarm sole proprietorships** (Schedule C by industry, TY1996–2023) and
   **Form W-2 statistics** (wages at the earner level, TY2019–2020).
+- **line item estimates** (Pub 4801/5385, TY2003–2023): every line of every
+  form and schedule, with no AGI cut. Because these share Pub 1304's weighted
+  sample, they double as a cross-check on the rest of the store.
 
 This repo holds the **code only** — data is downloaded on demand, either into
 the repo's own (gitignored) `data/` folder or to a separate location of your
@@ -32,13 +35,26 @@ Rscript download_irs_ind.R --dest /path/to/store  # separate destination
 Rscript download_irs_ind.R --only by_size         # one family only
 ```
 
+Cross-check the line item estimates against the Pub 1304 tables (see
+[notes/line_items.md](notes/line_items.md)):
+
+```bash
+python3 parse_line_items.py /path/to/store        # needs PyMuPDF (import fitz)
+Rscript run_checks.R --dest /path/to/store        # writes checks/_report.csv
+```
+
+`run_checks.R` exits non-zero on any unexplained mismatch, so it can gate a
+build. Note that `module load R/...` swaps the Python environment on this
+cluster — run the two steps in separate shells.
+
 Families for `--only` (comma-separated, default all): `geo` (the four
-by-geographic-area CSV sets and their documentation guides), `by_size` (the
-14 national Pub 1304 tables), `ira` (ten IRA tables plus their precision
-companions), `sole_prop` (Schedule C by industry) and `w2` (Form W-2).
-Flags may be given in any order; the two positional arguments are the year
-range. Each family is clamped to the first year it publishes, so the default
-run spans 1996–2023 without fetching years a family lacks.
+by-geographic-area CSV sets and their documentation guides), `by_size` (the 14
+national Pub 1304 tables), `ira` (ten IRA tables plus their precision
+companions), `sole_prop` (Schedule C by industry), `w2` (Form W-2) and
+`line_items` (the Pub 4801/5385 PDFs). Flags may be given in any order; the
+two positional arguments are the year range. Each family is clamped to the
+first year it publishes, so the default run spans 1996–2023 without fetching
+years a family lacks.
 
 Budget Lab internal users: the canonical shared destination (already
 populated, with a consolidated `NOTES.md` at its root) is documented
@@ -62,6 +78,12 @@ county/             county_{year}_agi.csv.gz          County income data, by AGI
                     county_{year}_noagi.csv.gz        County income data, county totals
 zip/                zip_{year}_agi.csv.gz             ZIP code data, by AGI class
                     zip_{year}_noagi.csv.gz           ZIP code data, ZIP totals
+national/line_items/ p4801_{year}.pdf                 Line item estimates: every line
+                    p5385_{year}.pdf                  of every form/schedule, no AGI
+                                                      cut. p5385_2018-2019.pdf is one
+                                                      PDF Portfolio holding both years
+checks/             line_item_values.csv              extracted check items, the report
+                    _report.csv                       from run_checks.R
 national/sole_prop/ sp_t{nn}_{year}.xls               Nonfarm sole proprietorships
                     sp_t{nn}_sic_{year}.xls           (Schedule C) by industry; the
                     sp_t02_expanded_2015.xls          canonical series is NAICS, _sic_
@@ -109,6 +131,10 @@ the files:
   TY2000–2004 file-vs-table numbering break, the missing TY2003, the BIFF4
   TY2000 files `readxl` cannot open, and three files the source page fails to
   link)
+- [notes/line_items.md](notes/line_items.md) — Pub 4801/5385 line item
+  estimates (incl. the exact-agreement cross-check against Pub 1304 and its
+  three ±1 rounding differences, the portfolio that holds two tax years, the
+  attachment that only looks like one, and the per-year AGI line number)
 - [notes/sole_prop.md](notes/sole_prop.md) — nonfarm sole proprietorships
   (incl. the TY1998 SIC/NAICS double publication that would otherwise break a
   panel at its seam, the `96spo1ig.xls` typo, and the TY2015 "Table 3" that is
@@ -150,6 +176,8 @@ The SOI documentation guides themselves are downloaded alongside the data
 | Sole prop tables 1–2, SIC era | 1996–1998 | `{yy}sp01ig`/`sp02ig` (1997), `98sp01ic`/`98sp02ic`; **TY1996 Table 1 is `96spo1ig.xls`** — letter `o`, unpadded |
 | Sole prop tables 3 / 4 | 2016–2020 / 2017–2020 | `16sp03br` then `{yy}sp03szbr`; `{yy}sp04ra`. Both absent from TY2021 |
 | Form W-2 tables 1–4 | 2019–2020 only | `{yy}in0{n}w2all.xlsx`; TY2021+ probed and absent |
+| Pub 4801 line items | 2003–2023 | `03linecnt` / `{YYYY}linecnt` / `{yy}inlinecount` / `p4801--{rev}` / current `p4801.pdf`; the revision token is a publication date, not derivable |
+| Pub 5385 line items | 2017–2023 | `p5385--{rev}` / current `p5385.pdf`; TY2018+2019 share one URL as a PDF Portfolio |
 
 Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 2017 and *number of individuals* from 2018 (TCJA); state rows include the 50
