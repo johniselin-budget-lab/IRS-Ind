@@ -25,7 +25,13 @@ directly).
 Rscript download_irs_ind.R                        # -> ./data, years 2011-2023
 Rscript download_irs_ind.R 2017 2023              # custom year range
 Rscript download_irs_ind.R --dest /path/to/store  # separate destination
+Rscript download_irs_ind.R --only by_size         # one family only
 ```
+
+Families for `--only` (comma-separated, default all): `geo` (the four
+by-geographic-area CSV sets and their documentation guides) and `by_size`
+(the 14 national Pub 1304 tables). Flags may be given in any order; the two
+positional arguments are the year range.
 
 Budget Lab internal users: the canonical shared destination (already
 populated, with a consolidated `NOTES.md` at its root) is documented
@@ -34,7 +40,9 @@ internally — pass it via `--dest`.
 The script is idempotent (existing files are skipped; delete a file to
 re-fetch), tolerates unpublished years (HTTP 404s skipped with a message),
 and rewrites a checksummed `manifest.csv` (path, source URL, year, bytes,
-md5, retrieval date) at the destination each run.
+md5, retrieval date) at the destination each run. A narrowed run (`--only`,
+or a short year range) does not truncate the manifest: rows for files it
+never visited are carried over as long as those files are still on disk.
 
 ## Data layout (under the destination)
 
