@@ -441,8 +441,8 @@ families ≈ 400 files, well under 200 MB.
 4. **Mirror Pub 4801/5385 PDFs and stand up the check harness** — **done**
    2026-08-17: 27 files, `notes/line_items.md`, `parse_line_items.py`,
    `run_checks.R`, `checks/`.
-5. **Tier A scraper (TY2018–2023)** — **done** 2026-08-17. 12,853 values
-   across ~59 forms a year in `aligned/line_items.csv`, gated on 79
+5. **Tier A scraper (TY2018–2023)** — **done** 2026-08-17. 10,890 values
+   across ~57 forms a year in `aligned/line_items.csv`, gated on 79
    comparisons against Pub 1304: 78 exact, 1 known ±1 rounding difference, 0
    unexplained. No separate `align_line_items.R` was needed — the checks read
    the emitted panel directly. Remaining: six grid-layout forms (4136, 8283,

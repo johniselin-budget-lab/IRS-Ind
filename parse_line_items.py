@@ -34,7 +34,9 @@ import fitz
 
 NUMERIC = re.compile(r'^\d{1,3}(,\d{3})*$|^\d{3,}$')
 LINE_LABEL = re.compile(r'^\d{1,2}[a-z]?$')
+DOT_LEADER = re.compile(r'^[.\u2024\u2219\u00b7\u25b6]+$')   # the forms' leader dots
 MAX_LABEL_GAP = 40  # pt between a line label and its estimate
+BOX_Y_TOL = 8       # pt a value may sit outside its drawn box (TY2018 prints above)
 
 # Page markers. Vintages differ in case (TY2011 shouts) and TY2013 typesets
 # "filed" with an fi ligature that extracts as "fi led", so text is normalised
@@ -83,30 +85,39 @@ def label_columns(words, min_members=4):
     return {x for x, n in counts.items() if n >= min_members}
 
 
+def boxes(page):
+    """The form's drawn entry cells, where it paints them as rectangles."""
+    return [d['rect'] for d in page.get_drawings()
+            if 25 < d['rect'].width < 130 and 7 < d['rect'].height < 16]
+
+
 def line_values(page):
     """[(line label, value, description)] for the estimates printed on a page.
 
-    A value is a numeric token sitting immediately to the right of a line
-    label that stands in one of the form's label columns. Anchoring on the
-    label rather than on a drawn entry box is what makes this work across
-    forms: the 1040 draws filled rectangles behind its entry cells, but most
-    schedules rule theirs with bare line segments, so box detection finds
-    nothing on them and silently returns no values at all.
+    A candidate is a numeric token immediately to the right of a line label
+    standing in one of the form's label columns. Anchoring on the label rather
+    than on a drawn entry box is what makes this work across forms: the 1040
+    paints filled rectangles behind its entry cells, but most schedules rule
+    theirs with bare line segments, so box detection finds nothing on them.
 
-    The label is taken from the value's own row. That also handles rows with
-    two entry columns (2a mid-page, 2b at the margin) and, with the adjacency
-    limit, keeps body-text numerals out: "Attach Form 4797" sits ~180pt from
-    the nearest label and is ignored.
+    A candidate still has to look like an entry rather than prose, because
+    forms are full of cross-references that sit right beside a label -- "19 If
+    line 18 is more than line 15" put the 18 one label-width from the 19 and
+    published it as line 19's estimate. So a candidate is kept only if it is
+    either inside one of the drawn boxes, or ends its row: an estimate is
+    printed in the entry column with nothing after it, while a cross-reference
+    has the rest of its sentence to the right.
     """
     words = page.get_text('words')
     columns = label_columns(words)
     labels = [w for w in words if LINE_LABEL.match(w[4])
               and any(abs(w[0] - x) <= 3 for x in columns)]
+    bs = boxes(page)
     out = []
     for w in words:
         if not NUMERIC.match(w[4]):
             continue
-        cy = (w[1] + w[3]) / 2
+        cx, cy = (w[0] + w[2]) / 2, (w[1] + w[3]) / 2
         left = [l for l in labels
                 if l[2] < w[0] and w[0] - l[2] <= MAX_LABEL_GAP
                 and abs((l[1] + l[3]) / 2 - cy) <= 5]
@@ -115,6 +126,15 @@ def line_values(page):
         label = max(left, key=lambda l: l[2])
         if label[4] == w[4] and label[0] == w[0]:
             continue
+
+        in_box = any(b.x0 <= cx <= b.x1 and b.y0 - BOX_Y_TOL <= cy <= b.y1 + BOX_Y_TOL
+                     for b in bs)
+        after = [t for t in words
+                 if abs((t[1] + t[3]) / 2 - cy) <= 5 and t[0] > w[2] + 1
+                 and not DOT_LEADER.match(t[4])]
+        if not in_box and after:
+            continue
+
         # Best-effort description. A wrapped line puts half of it a row above,
         # so this can be only the tail -- never key anything on it.
         desc = ' '.join(t[4] for t in words

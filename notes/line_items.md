@@ -95,9 +95,20 @@ a page with no boxes simply yields an empty list. Anchoring on boxes covered
 The rule now: **a value is a numeric token immediately to the right of a line
 label that stands in one of the form's label columns.** Label columns are
 found per page as the x positions several label-shaped tokens share, which
-keeps body-text numerals out — "Attach Form 4797" sits ~180pt from the
+keeps distant body-text numerals out — "Attach Form 4797" sits ~180pt from the
 nearest label and is ignored, whereas a stray "1" from "Schedule 1, line 22"
 had previously captured TY2018's AGI row and dropped its value.
+
+Label adjacency alone is not enough, because forms are full of
+**cross-references that sit right beside a label**: "19 If line 18 is more
+than line 15" put the 18 one label-width from the 19, and it was published as
+line 19's estimate — 18 returns where the truth is millions. A candidate is
+therefore kept only if it is **either inside one of the drawn boxes or ends
+its row**: an estimate is printed in the entry column with nothing after it,
+while a cross-reference has the rest of its sentence to the right. That test
+removed about 1,960 spurious values (those under 100 fell from 598 to 163),
+and the surviving small values are real — Form 3468's rare energy credits
+genuinely have counts of 0 and 27.
 
 Three further traps, all from TY2018:
 
@@ -121,8 +132,8 @@ Smaller traps: TY2013 typesets "filed" with an **fi ligature** that extracts as
 
 `parse_line_items.py <dest>` writes `aligned/line_items.csv`: one row per
 (tax year, form, universe, line, measure) with the value, the page it came
-from and a best-effort description. **12,853 values for TY2018–2023**, about
-2,000 a year across ~59 forms.
+from and a best-effort description. **10,890 values for TY2018–2023**, about
+1,800 a year across ~57 forms.
 
 Page classification comes from three independent signals: the measure from the
 page header ("Number of returns filed…" vs "Amounts of selected lines

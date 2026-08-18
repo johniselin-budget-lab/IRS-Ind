@@ -44,7 +44,7 @@ Rscript run_checks.R --dest /path/to/store        # writes checks/_report.csv
 ```
 
 `parse_line_items.py` writes `aligned/line_items.csv` — every extracted line
-of every form, for the validated years TY2018–2023 (12,853 values, ~59 forms
+of every form, for the validated years TY2018–2023 (10,890 values, ~57 forms
 a year). `run_checks.R` then compares that panel against the Pub 1304 tables
 and exits non-zero on any unexplained mismatch, so it can gate a build. Note
 that `module load R/...` swaps the Python environment on this cluster — run
