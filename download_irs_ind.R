@@ -499,6 +499,19 @@ for (year in years) {
 #----------------
 
 mf = do.call(rbind, manifest)
+
+# A run that lands no file at all -- every target 404s, e.g. probing a year SOI
+# has not published yet -- leaves `manifest` empty and `mf` NULL. With no prior
+# manifest.csv to carry rows over from there is nothing to write, and the
+# ordering below would fail on NULL.
+if (is.null(mf)) {
+  if (!file.exists('manifest.csv')) {
+    message('No files at the destination; manifest.csv not written.')
+    quit(save = 'no', status = 0)
+  }
+  mf = utils::read.csv('manifest.csv', stringsAsFactors = FALSE)[0, ]
+}
+
 if (file.exists('manifest.csv')) {
   old = utils::read.csv('manifest.csv', stringsAsFactors = FALSE)
   mf$retrieved = ifelse(is.na(mf$retrieved),
