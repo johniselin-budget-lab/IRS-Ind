@@ -165,10 +165,10 @@ The SOI documentation guides themselves are downloaded alongside the data
 
 | Family | Years available | SOI filename pattern |
 |---|---|---|
-| HT2 all-states CSV | 2012, 2014–2022 | `{yy}in54cmcsv.csv` (2012–17; 2013 unpublished), `18in55cmagi.csv` (2018, one-off), `{yy}in55cmcsv.csv` (2019+) |
-| State percentile shares | 2013–2022 | `{yy}instateshares.csv` (+ `...docguide.pdf`) |
-| County income | 2011, 2013–2022 | `{yy}incyallagi.csv` / `{yy}incyallnoagi.csv` (2012 and earlier are zip archives, not pulled) |
-| ZIP code data | 2011–2022 | `{yy}zpallagi.csv` / `{yy}zpallnoagi.csv` |
+| HT2 all-states CSV | 2012, 2014–2023 | `{yy}in54cmcsv.csv` (2012–17; 2013 unpublished), `18in55cmagi.csv` (2018, one-off), `{yy}in55cmcsv.csv` (2019+) |
+| State percentile shares | 2013–2023 | `{yy}instateshares.csv` (+ `...docguide.pdf`) |
+| County income | 2011, 2013–2023 | `{yy}incyallagi.csv` / `{yy}incyallnoagi.csv` (2012 and earlier are zip archives, not pulled) |
+| ZIP code data | 2011–2022 (trails the rest by a year) | `{yy}zpallagi.csv` / `{yy}zpallnoagi.csv` |
 | National by-size 1.1/1.2/1.4/2.1 | 2011–2023 | `{yy}in11si.xls` / `in12ms` / `in14ar` / `in21id` (`.xls`) |
 | National by-size 1.4A (cap assets) | 2012–2023 | `{yy}in14acg.xls` (`.xls`; 2011 unpublished) |
 | National by-size 2.5/3.1/3.2/3.3/3.5 | 2011–2023 | `{yy}in25ic` / `in31mt` / `in32tt` / `in33ar` / `in35tr` (`.xls`; published back to 1996–2003 under older suffixes, not pulled) |
@@ -189,8 +189,19 @@ Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 states, DC, and PR/"other areas" (some vintages separate PR from OA).
 
 When SOI publishes a new year, extend the range:
-`Rscript download_irs_ind.R --dest <store> 2011 2024`. (The geographic files
-currently trail the national by-size tables by a year: TY2022 vs TY2023.)
+`Rscript download_irs_ind.R --dest <store> 2011 2024`. As of 2026-09 the
+mirror runs through **TY2023 everywhere except ZIP**, which SOI has not yet
+published for 2023 — re-running `--only geo 2023 2023` later will pick up
+just that pair. Nothing exists for TY2024 in any family yet.
+
+TY2023 brought one schema change to HT2 and both county files, from the
+Inflation Reduction Act's split of Form 5695: `N/A07260` (residential energy
+tax credit) is replaced by `N/A07262` (residential clean energy credit,
+Sch. 3:5a) and `N/A07265` (energy efficient home improvement credit,
+Sch. 3:5b) — 163→165 columns in HT2, 166→168 in county. `N/A11070` is
+relabelled "additional child tax credit" but is the same code and content.
+The state percentile shares are unchanged. See
+[notes/ht2.md](notes/ht2.md) and [notes/county.md](notes/county.md).
 
 ## Known consumers
 

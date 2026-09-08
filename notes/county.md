@@ -1,9 +1,9 @@
 # Notes: County income data (`county/`)
 
 Documentation of the data and its changes over time, compiled 2026-07 from
-the SOI documentation guides and verified directly against the local files.
-Money amounts are **$ thousands**; return counts rounded to the nearest 10
-**from 2013** (unrounded in 2011).
+the SOI documentation guides and verified directly against the local files
+(TY2023 added 2026-09). Money amounts are **$ thousands**; return counts
+rounded to the nearest 10 **from 2013** (unrounded in 2011).
 
 **Documentation caveat**: the `{yy}incmdocguide.doc` files SOI links from the
 county pages are titled "**State Data** Documentation Guide" — they document
@@ -14,8 +14,8 @@ this mirror. (The same guides are saved under `state/HT2/` as well.)
 
 ## What the files are
 
-- **`county_{year}_agi.csv.gz`**: one row per **county × AGI stub** (2022:
-  25,552 rows = 3,194 geographies × 8 stubs).
+- **`county_{year}_agi.csv.gz`**: one row per **county × AGI stub** (2022
+  and 2023: 25,552 rows = 3,194 geographies × 8 stubs).
 - **`county_{year}_noagi.csv.gz`**: one row per county (`AGI_STUB` = 0),
   same column set as the agi file.
 - Geography: `STATEFIPS`, `STATE`, `COUNTYFIPS` (3-digit), `COUNTYNAME`.
@@ -27,7 +27,7 @@ this mirror. (The same guides are saved under `state/HT2/` as well.)
 - **2011 (7 stubs)**: 1 = Under $1 (negative AGI included as its own stub),
   2 = $1–<$25k, 3–7 = $25k/$50k/$75k/$100k/$200k+ (verified from per-stub
   mean AGI).
-- **2013–2022 (8 stubs, unchanged)**: 1 = Under $1, 2 = $1–<$10k,
+- **2013–2023 (8 stubs, unchanged)**: 1 = Under $1, 2 = $1–<$10k,
   3 = $10k–<$25k, 4–8 = $25k/$50k/$75k/$100k/$200k+. The county CSVs
   **collapse the state guide's three top classes ($200k–500k, $500k–1M,
   $1M+) into a single $200k+ stub** (verified: max stub = 8, stub-8 mean AGI
@@ -67,6 +67,14 @@ this mirror. (The same guides are saved under `state/HT2/` as well.)
   − `A10973`; **`A10971` re-purposed to EIP3**.
 - **2022:** + `A00400` tax-exempt interest, `A25870` rent/royalty,
   **`A59661–64` EITC by qualifying-child count**; − all COVID fields.
+- **2023 (Inflation Reduction Act splits Form 5695):** − `A07260`
+  residential energy tax credit; + **`A07262` residential clean energy
+  credit** (Sch. 3:5a) and **`A07265` energy efficient home improvement
+  credit** (Sch. 3:5b). 166 → 168 columns. `A11070` is relabelled
+  "additional child tax credit" (was "refundable child tax credit or
+  additional child tax credit") — same code, same content. The 2023 docguide
+  states all three changes in its "Nature of Changes" section. Identical to
+  the HT2 change the same year (see [ht2.md](ht2.md)).
 
 ## Disclosure / suppression / rounding
 

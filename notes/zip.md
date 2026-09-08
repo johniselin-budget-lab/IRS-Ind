@@ -2,11 +2,20 @@
 
 Documentation of the data and its changes over time, compiled 2026-07 from
 the SOI ZIP Code Data documentation guides (2011–2022, downloaded alongside
-the data) and verified directly against the local files. Money amounts are
-**$ thousands**; return counts rounded to the nearest 10 **from 2012**
-(unrounded in 2011).
+the data) and verified directly against the local files. Coverage note
+re-checked 2026-09. Money amounts are **$ thousands**; return counts rounded
+to the nearest 10 **from 2012** (unrounded in 2011).
 
 ## What the files are
+
+**Coverage as of 2026-09: this series stops at TY2022 and now trails the
+other three geographic sets by a year.** HT2, the state percentile shares
+and the county files all reached TY2023 in August 2026; `23zpallagi.csv` /
+`23zpallnoagi.csv` return 404 and the SOI ZIP Code Data page still lists
+TY2022 as its newest year. Nothing is missing from the mirror — re-run
+`--only geo 2023 2023` when SOI publishes, and it will pick up just the ZIP
+pair. Expect the same Form 5695 split HT2 and county took in TY2023
+(`07260` → `07262` + `07265`, see [ht2.md](ht2.md)) whenever it lands.
 
 - **`zip_{year}_agi.csv.gz`** (`{yy}zpallagi.csv`): one row per STATE × ZIP ×
   AGI stub (stubs 1–6, all years).
@@ -21,7 +30,7 @@ the data) and verified directly against the local files. Money amounts are
 - **`ZIPCODE == 99999` catch-all rows** hold ZIPs with <100 returns and
   single-building/nonresidential ZIPs, per state (all years).
 
-## AGI stub scheme (unchanged 2011–2022)
+## AGI stub scheme (unchanged 2011–2022, the full published series)
 
 1 = $1–<$25k; 2 = $25k–<$50k; 3 = $50k–<$75k; 4 = $75k–<$100k;
 5 = $100k–<$200k; 6 = $200k+. (0 = no stub, noagi file.) Negative-AGI

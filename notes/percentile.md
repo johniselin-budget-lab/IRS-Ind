@@ -1,8 +1,9 @@
 # Notes: State AGI percentile shares (`state/percentile/`)
 
 Documentation of the data and its changes over time, compiled 2026-07 from
-the SOI docguide PDFs (2013–2022) and verified directly against the local
-files. **Units vary by year — see below before any cross-year use.**
+the SOI docguide PDFs (2013–2023) and verified directly against the local
+files (TY2023 added 2026-09). **Units vary by year — see below before any
+cross-year use.**
 
 ## What it is
 
@@ -16,8 +17,8 @@ groups** within each state: top 1, 5, 10, 25, 50, 75 percent
 **Population**: returns filed in the following calendar year, **excluding
 dependents' returns and negative-AGI returns**; APO/FPO/foreign/territory
 returns are counted in the US row only. Totals are therefore smaller than
-HT2 `N1` (2022: 149.5M vs 159.7M) and not comparable to all-returns
-tabulations.
+HT2 `N1` (2022: 149.5M vs 159.7M; 2023: 150.1M vs 159.9M) and not
+comparable to all-returns tabulations.
 
 ## Column structure (142-column standard layout)
 
@@ -34,7 +35,10 @@ tabulations.
 
 ## Changes by year
 
-- **2013–2017 and 2019–2022**: layout identical (142 columns).
+- **2013–2017 and 2019–2023**: layout identical (142 columns). **2023 is
+  unchanged from 2022** — same 142 columns, same 52 rows (US + 50 + DC, no
+  `OA`), same units. It is the only one of the four geographic sets the
+  Form 5695 split does not touch (it carries no credit detail).
 - **2018 one-off (128 columns)**: the separate IRA (`iradist`) and `pension`
   blocks (28 columns) are replaced by a combined `ira_pension` block (14
   columns) — mirroring HT2's 2018-only combined `A01750`. For a panel, 2018
@@ -47,7 +51,7 @@ The docguides misstate units in several years. Verified against the files:
 
 | Years | Aggregate amounts (`sum_*`, `total_*_amt`, `total_agi`, `total_tax`) |
 |---|---|
-| 2013, 2015, 2018–2022 | **$ thousands** |
+| 2013, 2015, 2018–2023 | **$ thousands** |
 | 2014, 2016, 2017 | **whole dollars**, with large cells exported in **Excel scientific notation (~6 significant digits)** (e.g. `1.11477E+13`) — a real precision loss in ~300 cells/year |
 
 `agi_xx` percentile cutoffs are whole dollars in **all** years. Rescale
@@ -63,6 +67,9 @@ time series; check for `E+` cells when parsing.
 - The `OA` (statefips 57) row appears only in 2014/2016/2017 — the same
   three years with the unit/notation anomaly (a different export path).
   Drop/handle it before sum-of-states operations.
+- `agi_xx` cutoffs carry cents through 2022 (`675368.52`) but are whole
+  integers in 2023 — cosmetic, but a strict type check across the panel
+  will see the column change shape.
 - No suppression thresholds documented; protection comes from the coarse
   state × percentile cells.
 

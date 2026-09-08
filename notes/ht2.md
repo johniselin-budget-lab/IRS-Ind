@@ -1,10 +1,10 @@
 # Notes: Historic Table 2 (`state/HT2/`)
 
 Documentation of the data and its changes over time, compiled 2026-07 from
-the SOI docguides (2012 and 2022 vintages; county docguides for intermediate
-years, which share the variable set) and verified directly against the local
-files. Money amounts are **$ thousands**; return counts are rounded to the
-nearest 10.
+the SOI docguides (2012, 2022 and 2023 vintages; county docguides for
+intermediate years, which share the variable set) and verified directly
+against the local files. TY2023 added 2026-09. Money amounts are
+**$ thousands**; return counts are rounded to the nearest 10.
 
 ## What it is
 
@@ -20,7 +20,7 @@ returns received in the window are included as a proxy for late filers).
 - Key identifiers: `N1` = returns; `MARS1/MARS2/MARS4` = single / joint /
   head-of-household return counts (added in TY2012).
 
-## AGI stub scheme (unchanged 2012–2022)
+## AGI stub scheme (unchanged 2012–2023)
 
 | stub | AGI class |
 |---|---|
@@ -76,6 +76,16 @@ docguide variable tables.)
 - **2022:** + `N/A00400` tax-exempt interest, `N/A25870` rent/royalty net
   income, **`N/A59661–64` EITC by number of qualifying children (0/1/2/3)**;
   − all COVID-era fields.
+- **2023 (Inflation Reduction Act splits Form 5695):** − `N/A07260`
+  residential energy tax credit, the single pre-IRA Form 5695 total;
+  + **`N/A07262` residential clean energy credit** (Sch. 3:5a) and
+  **`N/A07265` energy efficient home improvement credit** (Sch. 3:5b).
+  163 → 165 columns. No other variable added or dropped; `N/A11070` is
+  relabelled "additional child tax credit" (was "refundable child tax credit
+  or additional child tax credit") — **same code, same content**, a docguide
+  label change only. A cross-year energy-credit series must treat 2023 as a
+  break: 07262 + 07265 is the nearest analogue to the old 07260, not a
+  continuation of it.
 
 ## The N2 relabel
 
