@@ -143,6 +143,129 @@ def line_values(page):
     return out
 
 
+ADD_RANGE = re.compile(r'add lines?\s+(\w+)\s+through\s+(\w+)', re.I)
+ADD_LIST  = re.compile(r'(?:add|combine)\s+lines?\s+([\w,\s]+?)(?:\s*[.\u2024]|$)', re.I)
+SUBTRACT  = re.compile(r'subtract\s+line\s+(\w+)\s+from\s+line\s+(\w+)', re.I)
+LABEL_TOKEN = re.compile(r'^\d{1,2}[a-z]?$')
+
+# A stated sum only survives aggregation if it is LINEAR in each return. Many
+# form lines are not: "if zero or less, enter -0-" floors the result per
+# return, "enter the smaller of" caps it, and the sum of floored values is not
+# the floor of the sum. Relations whose row carries one of these are recorded
+# but flagged, because checking them would produce failures that mean nothing.
+TRIGGER = re.compile(r'add lines?|subtract line|combine lines?', re.I)
+
+NONLINEAR = re.compile(
+    r'zero or less|enter -0-|enter 0|smaller of|larger of|greater of'
+    r'|but not (?:more|less) than|whichever|limit|cannot exceed|do not enter'
+    r'|if more than|if less than|multiply|percent|%', re.I)
+
+
+def expand_range(first, last):
+    """Labels covered by "lines 1a through 1h" / "lines 8 through 10"."""
+    a = re.match(r'^(\d{1,2})([a-z])$', first)
+    b = re.match(r'^(\d{1,2})([a-z])$', last)
+    if a and b and a.group(1) == b.group(1):
+        return ['%s%s' % (a.group(1), chr(c))
+                for c in range(ord(a.group(2)), ord(b.group(2)) + 1)]
+    if first.isdigit() and last.isdigit() and int(last) >= int(first):
+        return [str(n) for n in range(int(first), int(last) + 1)]
+    return []
+
+
+def line_relations(page):
+    """[(target line, op, [component lines], phrase)] stated on a page.
+
+    The forms carry their own arithmetic -- "Add lines 1z, 2b, 3b, 4b, 5b, 6b,
+    7, and 8", "Subtract line 10 from line 9" -- so each subtotal can be
+    checked against its own components. That tests every extracted amount
+    rather than the handful a curated crosswalk can name.
+    """
+    words = page.get_text('words')
+    columns = label_columns(words)
+    if not columns:
+        return []
+    # Cluster into printed rows on the gaps between them; fixed-width bucketing
+    # splits a row whose tokens straddle a boundary.
+    rows, cur, last_y = [], [], None
+    for w in sorted(words, key=lambda w: ((w[1] + w[3]) / 2, w[0])):
+        y = (w[1] + w[3]) / 2
+        if last_y is not None and y - last_y > 4:
+            rows.append(cur)
+            cur = []
+        cur.append(w)
+        last_y = y
+    if cur:
+        rows.append(cur)
+
+    out = []
+    keys = range(len(rows))
+    for i in keys:
+        band = sorted(rows[i], key=lambda w: w[0])
+        # a wrapped description continues on the next printed line
+        nxt = sorted(rows[i + 1], key=lambda w: w[0]) if i + 1 < len(rows) else []
+        labels = [w for w in band if LABEL_TOKEN.match(w[4])
+                  and any(abs(w[0] - x) <= 3 for x in columns)]
+        if not labels:
+            continue
+        # Take the label printed beside the ENTRY COLUMN, not the leftmost one.
+        # Sub-lettered lines print only the letter on the description side
+        # ("d Add lines 8a through 8c"), which is not label-shaped, so the
+        # leftmost match is then a line number quoted inside the phrase itself
+        # -- that is how "Add lines 8a through 8c" was filed under line 8a
+        # instead of the 8d it defines. The right-hand label is always the
+        # row's own, in full.
+        target = max(labels, key=lambda w: w[0])[4]
+        own  = ' '.join(w[4] for w in band)
+        text = ' '.join(w[4] for w in band + nxt)
+
+        # Match the row's own text. The lookahead onto the next printed line
+        # is ONLY to finish a description that wraps, so it is used solely
+        # when this row starts a statement it does not complete. Falling back
+        # to it whenever the row had no match instead hands this row the NEXT
+        # row's statement -- that is how 1040 line 10 acquired line 11's
+        # "Subtract line 10 from line 9" and failed every check.
+        rel = first_relation(own)
+        if rel is None and TRIGGER.search(own):
+            rel = first_relation(text)
+        # A line is never defined in terms of itself, so a target that appears
+        # among its own components means the statement was filed under the
+        # wrong line -- the label picked up was one quoted inside the phrase.
+        # Drop it rather than guess: the arithmetic check found exactly this
+        # in 9 relations ("Subtract line 5 from line 4" filed under line 5,
+        # which belongs to line 6).
+        if rel is not None and target in rel[1]:
+            rel = None
+        if rel:
+            caveat = 'nonlinear' if NONLINEAR.search(text) else ''
+            out.append((target,) + rel + (caveat,))
+    return out
+
+
+def first_relation(text):
+    """The arithmetic statement appearing earliest in a row's text."""
+    found = []
+    m = SUBTRACT.search(text)
+    if m:
+        found.append((m.start(), 'subtract', [m.group(2), m.group(1)], m.group(0)))
+    m = ADD_RANGE.search(text)
+    if m:
+        parts = expand_range(m.group(1), m.group(2))
+        if parts:
+            found.append((m.start(), 'add', parts, m.group(0)))
+    m = ADD_LIST.search(text)
+    if m:
+        parts = [p for p in re.split(r'[,\s]+|\band\b', m.group(1)) if p]
+        parts = [p for p in parts if LABEL_TOKEN.match(p)]
+        if len(parts) >= 2:
+            found.append((m.start(), 'add', parts, m.group(0)))
+    if not found:
+        return None
+    _, op, parts, phrase = min(found, key=lambda f: f[0])
+    return op, parts, phrase
+    return out
+
+
 def page_form(page):
     for raw in page.get_text().split('\n'):
         m = LEGEND.match(raw.strip())
@@ -222,7 +345,7 @@ def classify(doc):
 def extract(path, tax_year):
     doc = fitz.open(path)
     source = os.path.basename(path)
-    rows = []
+    rows, relations = [], []
     for page in classify(doc):
         for label, value, desc in line_values(doc[page['pdf_page']]):
             rows.append(dict(tax_year=tax_year, publication=4801,
@@ -230,7 +353,16 @@ def extract(path, tax_year):
                              line=label, line_text=desc, measure=page['measure'],
                              value=int(value.replace(',', '')),
                              pdf_page=page['pdf_page'], source_file=source))
-    return doc, rows
+        # relations are a property of the form, so read them once per page
+        # from whichever measure is printed there
+        for target, op, parts, phrase, caveat in line_relations(doc[page['pdf_page']]):
+            relations.append(dict(tax_year=tax_year, form=page['form'],
+                                  universe=page['universe'], target_line=target,
+                                  op=op, components='|'.join(parts),
+                                  caveat=caveat,
+                                  phrase=re.sub(r'\s+', ' ', phrase)[:80],
+                                  pdf_page=page['pdf_page']))
+    return doc, rows, relations
 
 
 #-------
@@ -243,6 +375,7 @@ SUMMARY_YEARS = range(2003, 2024)
 def main(dest, first, last):
     src_dir = os.path.join(dest, 'national', 'line_items')
     all_rows, check_rows, coverage, warnings = [], [], [], []
+    all_relations = []
 
     # The cover-page total is a plain text read, independent of the page
     # classification, so it is collected for every vintage on disk.
@@ -260,13 +393,15 @@ def main(dest, first, last):
                                    value=int(m.group(1).replace(',', ''))))
         else:
             warnings.append('TY%d: cover-page total not found' % year)
+        doc.close()
 
     for year in range(first, last + 1):
         path = os.path.join(src_dir, 'p4801_%d.pdf' % year)
         if not os.path.exists(path):
             continue
-        doc, rows = extract(path, year)
+        doc, rows, rels = extract(path, year)
         all_rows.extend(rows)
+        all_relations.extend(rels)
 
         # The check items are selected from the same extraction rather than
         # parsed a second way, so the harness tests the real parser.
@@ -291,13 +426,17 @@ def main(dest, first, last):
                             % (year, carried))
         coverage.append((year, len(rows), len({r['form'] for r in rows}),
                          len(set(r['pdf_page'] for r in rows)), len(pages)))
+        doc.close()      # PyMuPDF corrupts its heap if many stay open
 
     for sub, name, fields, data in (
             ('aligned', 'line_items.csv',
              ['tax_year', 'publication', 'universe', 'form', 'line', 'line_text',
               'measure', 'value', 'pdf_page', 'source_file'], all_rows),
             ('checks', 'line_item_values.csv',
-             ['tax_year', 'item', 'measure', 'value'], check_rows)):
+             ['tax_year', 'item', 'measure', 'value'], check_rows),
+            ('aligned', 'line_relations.csv',
+             ['tax_year', 'form', 'universe', 'target_line', 'op', 'components',
+              'caveat', 'phrase', 'pdf_page'], all_relations)):
         out_dir = os.path.join(dest, sub)
         os.makedirs(out_dir, exist_ok=True)
         with open(os.path.join(out_dir, name), 'w', newline='') as f:
@@ -311,6 +450,7 @@ def main(dest, first, last):
     print('\n%d values across %d tax years -> aligned/line_items.csv'
           % (len(all_rows), len(coverage)))
     print('%d check values -> checks/line_item_values.csv' % len(check_rows))
+    print('%d stated relations -> aligned/line_relations.csv' % len(all_relations))
     if warnings:
         print('\nwarnings:')
         for w in warnings:

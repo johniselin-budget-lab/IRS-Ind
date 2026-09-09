@@ -50,6 +50,17 @@ and exits non-zero on any unexplained mismatch, so it can gate a build. Note
 that `module load R/...` swaps the Python environment on this cluster — run
 the two steps in separate shells.
 
+```bash
+Rscript check_arithmetic.R --dest /path/to/store  # writes checks/_arithmetic.csv
+```
+
+A second, structural check: the forms state their own arithmetic ("Add lines
+1z, 2b, 3b, …"), so every subtotal can be tested against its own components
+rather than only the dozen lines the crosswalk names. It is a screen rather
+than a gate — most stated arithmetic is conditional per return and does not
+survive aggregation — and its job is to surface the cases where a sum lands on
+the wrong line. See [notes/line_items.md](notes/line_items.md).
+
 Families for `--only` (comma-separated, default all): `geo` (the four
 by-geographic-area CSV sets and their documentation guides), `by_size` (the 14
 national Pub 1304 tables), `ira` (ten IRA tables plus their precision
@@ -87,8 +98,11 @@ national/line_items/ p4801_{year}.pdf                 Line item estimates: every
                                                       PDF Portfolio holding both years
 aligned/            line_items.csv                    every extracted form line,
                                                       TY2018-2023 (see notes)
+                    line_relations.csv                the arithmetic each form
+                                                      states about itself
 checks/             line_item_values.csv              cover-page totals, all vintages
                     _report.csv                       the run_checks.R report
+                    _arithmetic.csv                   the check_arithmetic.R report
 national/sole_prop/ sp_t{nn}_{year}.xls               Nonfarm sole proprietorships
                     sp_t{nn}_sic_{year}.xls           (Schedule C) by industry; the
                     sp_t02_expanded_2015.xls          canonical series is NAICS, _sic_
