@@ -24,7 +24,8 @@
 #   national/sole_prop/ sp_t{nn}_{year}.xls       Nonfarm sole proprietorship
 #                      sp_t{nn}_sic_{year}.xls    (Schedule C); _sic = the
 #                                                 1996-98 SIC-era companions
-#   national/w2/       w2_t{n}_{year}.xlsx        Form W-2 statistics
+#   national/w2/       w2_all_{year}.xls          Form W-2 statistics: one
+#                      w2_t{n}_{year}.xlsx        workbook to TY2018, four after
 #   national/ira/      ira_t{nn}_{year}.xls[x]    IRA accumulation/distribution,
 #                      ira_t{nn}_ci_{year}.xlsx   ten tables; ci = confidence
 #                      ira_t{nn}_cv_{year}.xlsx   intervals, cv = coeffs of var
@@ -90,9 +91,10 @@ FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items')
 
 # First tax year each family publishes. The default run spans their union
 # and every family is clamped to its own floor, so no year is fetched
-# pointlessly (IRA reaches back to 2000; the others start at 2011).
+# pointlessly -- sole prop reaches back to 1996, line items to 2003 and the
+# geographic and by-size families only to 2011.
 FIRST_YEAR = c(geo = 2011, by_size = 2011, ira = 2000,
-               sole_prop = 1996, w2 = 2019, line_items = 2003)
+               sole_prop = 1996, w2 = 2014, line_items = 2003)
 
 dest = file.path(script_dir, 'data')
 only = FAMILIES
@@ -360,12 +362,25 @@ targets_sole_prop = function(year) {
 }
 
 # --- w2: Form W-2 statistics ------------------------------------------------
-# Four tables cross-tabulating wage income, elective retirement contributions
-# and the retirement-plan indicator by age, sex, size of wages and size of AGI.
-# TY2019-2020 only; TY2021+ probed and absent 2026-08-17. The stub is stable,
-# so a new year is picked up automatically once SOI publishes it.
+# Wage income, elective retirement contributions and the retirement-plan
+# indicator, cross-tabulated by age, sex, size of wages and size of AGI --
+# the only SOI individual series resolving wages at the EARNER level.
+#
+# Two publication shapes, and the older one is the richer:
+#   TY2014-2018  {yy}inallw2.xls    ONE workbook, 51 sheets, Tables 1-7
+#   TY2019-2020  {yy}in0{n}w2all.xlsx  four workbooks, 30 sheets, Tables 1-4
+# TY2015 is absent from both patterns, and nothing has published since TY2020.
+# Note the word order flips between the two stubs (`allw2` vs `w2all`), which
+# is why a sweep over the modern stub alone never finds the earlier files --
+# and the source page links ONLY TY2019-2020, so the earlier vintages are
+# unlisted anywhere on it. See notes/w2.md.
 targets_w2 = function(year) {
   yy = sprintf('%02d', year %% 100)
+  if (year <= 2018) {
+    return(list(list(url = file.path(SOI, sprintf('%sinallw2.xls', yy)),
+                     to  = sprintf('national/w2/w2_all_%d.xls', year),
+                     gz  = FALSE)))
+  }
   lapply(1:4, function(t)
     list(url = file.path(SOI, sprintf('%sin0%dw2all.xlsx', yy, t)),
          to  = sprintf('national/w2/w2_t%d_%d.xlsx', t, year),

@@ -12,7 +12,7 @@ statistics**:
 - **IRA accumulation and distribution** (Form 5498 matched to Form 1040):
   the only SOI series carrying IRA *balances*, TY2000–2023.
 - **nonfarm sole proprietorships** (Schedule C by industry, TY1996–2023) and
-  **Form W-2 statistics** (wages at the earner level, TY2019–2020).
+  **Form W-2 statistics** (wages at the earner level, TY2014–2020).
 - **line item estimates** (Pub 4801/5385, TY2003–2023): every line of every
   form and schedule, with no AGI cut. Because these share Pub 1304's weighted
   sample, they double as a cross-check on the rest of the store.
@@ -107,9 +107,10 @@ national/sole_prop/ sp_t{nn}_{year}.xls               Nonfarm sole proprietorshi
                     sp_t{nn}_sic_{year}.xls           (Schedule C) by industry; the
                     sp_t02_expanded_2015.xls          canonical series is NAICS, _sic_
                                                       are the 1996-98 SIC companions
-national/w2/        w2_t{n}_{year}.xlsx               Form W-2 statistics: wages and
-                                                      deferrals at the earner level
-                                                      (multi-sheet workbooks)
+national/w2/        w2_all_{year}.xls                 Form W-2 statistics: wages and
+                    w2_t{n}_{year}.xlsx               deferrals at the earner level.
+                                                      One 51-sheet workbook to TY2018,
+                                                      four slimmer ones after
 national/ira/       ira_t{nn}_{year}.xls[x]           IRA accumulation and distribution:
                     ira_t{nn}_ci_{year}.xlsx          ten tables (nn = modern table
                     ira_t{nn}_cv_{year}.xlsx          number), ci = confidence intervals,
@@ -194,7 +195,7 @@ The SOI documentation guides themselves are downloaded alongside the data
 | Sole prop tables 1–2 | 1998–2023 (NAICS) | `{yy}sp01br` / `{yy}sp02is` from 2004 and 1999; 2000–03 each differ; TY1998 NAICS is `98sp03ic`/`98sp04ic` (see notes/sole_prop.md) |
 | Sole prop tables 1–2, SIC era | 1996–1998 | `{yy}sp01ig`/`sp02ig` (1997), `98sp01ic`/`98sp02ic`; **TY1996 Table 1 is `96spo1ig.xls`** — letter `o`, unpadded |
 | Sole prop tables 3 / 4 | 2016–2020 / 2017–2020 | `16sp03br` then `{yy}sp03szbr`; `{yy}sp04ra`. Both absent from TY2021 |
-| Form W-2 tables 1–4 | 2019–2020 only | `{yy}in0{n}w2all.xlsx`; TY2021+ probed and absent |
+| Form W-2 | 2014, 2016–2020 | `{yy}inallw2.xls` (one workbook, Tables 1–7) through 2018, then `{yy}in0{n}w2all.xlsx` (four workbooks, Tables 1–4). Note the word order flips. TY2015 and TY2021+ probed and absent; the source page links only 2019–2020 |
 | Pub 4801 line items | 2003–2023 | `03linecnt` / `{YYYY}linecnt` / `{yy}inlinecount` / `p4801--{rev}` / current `p4801.pdf`; the revision token is a publication date, not derivable |
 | Pub 5385 line items | 2017–2023 | `p5385--{rev}` / current `p5385.pdf`; TY2018+2019 share one URL as a PDF Portfolio |
 

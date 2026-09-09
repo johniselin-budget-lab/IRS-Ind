@@ -30,7 +30,7 @@ distribution][ira] · [Form W-2 statistics][w2].
 | Sales of capital assets | 1985, 1997–1999, 2007–2015 (+ panels) | **no, ends TY2015** | xls/xlsx | ~70 | low |
 | Nonfarm sole proprietorship | T1/T2 1998–2023 NAICS (+ 1996–98 SIC); T3 2016–20, T4 2017–20 | yes (T1/T2) | xls | 68 | **done** |
 | IRA accumulation/distribution | T1–T4 2000–2023 (no 2003); T5–T10 shorter | yes | xls → xlsx 2017+ | 213 | **done** |
-| Form W-2 statistics | TY2019–2020 only | stalled | xlsx | 8 | **done** |
+| Form W-2 statistics | TY2014, 2016–2020 (no 2015) | stalled since TY2020 | xls → xlsx 2019+ | 12 | **done** |
 
 Three of the five are pure download-and-document work. The line-item
 publications are the substantial build, and they are also the piece that pays
