@@ -28,8 +28,13 @@ if (length(args) >= 2 && args[1] == '--dest') dest = args[2]
 
 items = utils::read.csv(file.path(dest, 'aligned', 'line_items.csv'),
                         stringsAsFactors = FALSE)
+# caveat must be read as character: if a narrowed run happens to produce no
+# nonlinear statements at all, read.csv types the empty column as logical NA
+# and every downstream comparison silently returns NA rather than FALSE.
 rels  = utils::read.csv(file.path(dest, 'aligned', 'line_relations.csv'),
-                        stringsAsFactors = FALSE)
+                        stringsAsFactors = FALSE,
+                        colClasses = c(caveat = 'character'))
+rels$caveat[is.na(rels$caveat)] = ''
 
 # The same statement is printed on a form's returns page and its amounts page
 rels = unique(rels[, c('tax_year', 'form', 'universe', 'target_line', 'op',

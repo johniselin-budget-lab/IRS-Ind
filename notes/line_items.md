@@ -160,19 +160,27 @@ at the output caught (see above). The forms, however, state their own
 arithmetic — "Add lines 1z, 2b, 3b, 4b, 5b, 6b, 7, and 8", "Subtract line 10
 from line 9" — so every subtotal can be checked against its own components.
 `parse_line_items.py` records those statements in `aligned/line_relations.csv`
-(4,243 of them) and `check_arithmetic.R` evaluates them.
+(4,191 of them) and `check_arithmetic.R` evaluates them.
 
 **Amounts only.** Return *counts* are not additive: one return carries several
 component lines, so a total's count is not the sum of its parts.
 
 **Most stated arithmetic does not survive aggregation**, which is the main
-thing this check taught. The 4,243 statements dedupe to 2,129 distinct ones,
-of which **1,047 are outright nonlinear per return** — "if zero or less, enter
+thing this check taught. The 4,191 statements dedupe to 2,103 distinct ones,
+of which **602 are outright nonlinear per return** — "if zero or less, enter
 -0-" floors a result, "enter the smaller of" caps it, and a sum of floored
 values is not the floor of the sum — and those are flagged and set aside.
-That leaves **1,082 linear statements**, of which only **439 are fully
-evaluable** (the rest reference a line the parser did not extract, mostly on
-the grid-layout forms below). Of those 439, **66.7% reconcile exactly**. The rest mostly fail for the same reason one step
+That leaves **1,501 linear statements**, of which **584 are fully evaluable**
+(the rest reference a line the parser did not extract, mostly on the
+grid-layout forms below). Of those 584, **66.8% reconcile exactly**.
+
+Judging linearity is easy to get subtly wrong: an earlier version tested the
+row *plus the next printed row*, so a statement was set aside whenever the
+row **after** it happened to say "if zero or less". That halved the check's
+coverage — 439 evaluable instead of 584 — for a qualifier that was not its
+own. The caveat is now judged on the same text the statement was matched in,
+and the reconcile rate is unchanged at ~67%, which is the evidence that those
+900-odd relations were being excluded for no reason. The rest mostly fail for the same reason one step
 further out: lines that are conditional per return (an amount owed on one line
 *or* an overpayment on another) total over different sets of returns. So this
 is a **screen, not a gate** — `run_checks.R` remains the gate.
@@ -187,6 +195,13 @@ defined in terms of itself, so the parser now rejects any such relation
 outright rather than guessing a target. Three remain, all Form 8959's "Add
 lines 7, 13, and 17" landing on line 4 or 11 instead of 18 — reported, not
 hidden.
+
+**Ranges are expanded or dropped, never narrowed.** "Combine lines 1 through
+8" originally matched only the list pattern, which kept the two endpoints and
+recorded a two-term sum — 146 rows of the panel carried a truncated component
+list that then failed its own check. A range the parser cannot expand (mixed
+stems like "10 through 32f", or a compound "Add lines 27a and 28 through 31")
+is now left out entirely rather than recorded short.
 
 The same check also drove two earlier fixes: relation statements were being
 attributed to the row *above* (the wrap-lookahead was supplying a neighbour's

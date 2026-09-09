@@ -143,7 +143,8 @@ def line_values(page):
     return out
 
 
-ADD_RANGE = re.compile(r'add lines?\s+(\w+)\s+through\s+(\w+)', re.I)
+ADD_RANGE = re.compile(r'(?:add|combine)\s+lines?\s+(\w+)\s+through\s+(\w+)', re.I)
+RANGE_WORD = re.compile(r'\bthrough\b', re.I)
 ADD_LIST  = re.compile(r'(?:add|combine)\s+lines?\s+([\w,\s]+?)(?:\s*[.\u2024]|$)', re.I)
 SUBTRACT  = re.compile(r'subtract\s+line\s+(\w+)\s+from\s+line\s+(\w+)', re.I)
 LABEL_TOKEN = re.compile(r'^\d{1,2}[a-z]?$')
@@ -225,9 +226,9 @@ def line_relations(page):
         # to it whenever the row had no match instead hands this row the NEXT
         # row's statement -- that is how 1040 line 10 acquired line 11's
         # "Subtract line 10 from line 9" and failed every check.
-        rel = first_relation(own)
+        rel, matched = first_relation(own), own
         if rel is None and TRIGGER.search(own):
-            rel = first_relation(text)
+            rel, matched = first_relation(text), text
         # A line is never defined in terms of itself, so a target that appears
         # among its own components means the statement was filed under the
         # wrong line -- the label picked up was one quoted inside the phrase.
@@ -237,7 +238,11 @@ def line_relations(page):
         if rel is not None and target in rel[1]:
             rel = None
         if rel:
-            caveat = 'nonlinear' if NONLINEAR.search(text) else ''
+            # Judge linearity on the SAME text the statement was matched in.
+            # Using the lookahead here regardless flagged a relation whenever
+            # the FOLLOWING row said "if zero or less" -- roughly halving the
+            # check's coverage for a qualifier that was not its own.
+            caveat = 'nonlinear' if NONLINEAR.search(matched) else ''
             out.append((target,) + rel + (caveat,))
     return out
 
@@ -250,11 +255,18 @@ def first_relation(text):
         found.append((m.start(), 'subtract', [m.group(2), m.group(1)], m.group(0)))
     m = ADD_RANGE.search(text)
     if m:
+        # A range this cannot expand ("10 through 32f") is DROPPED, never
+        # narrowed: the list branch below would otherwise match the same
+        # phrase and record just its endpoints, turning "Combine lines 1
+        # through 8" into a two-term sum that then fails its own check.
         parts = expand_range(m.group(1), m.group(2))
         if parts:
             found.append((m.start(), 'add', parts, m.group(0)))
     m = ADD_LIST.search(text)
-    if m:
+    if m and not RANGE_WORD.search(m.group(1)):
+        # Compound phrases ("Add lines 27a and 28 through 31") would lose
+        # their spanned lines the same way, so any list carrying "through"
+        # is left out rather than recorded short.
         parts = [p for p in re.split(r'[,\s]+|\band\b', m.group(1)) if p]
         parts = [p for p in parts if LABEL_TOKEN.match(p)]
         if len(parts) >= 2:
@@ -263,7 +275,6 @@ def first_relation(text):
         return None
     _, op, parts, phrase = min(found, key=lambda f: f[0])
     return op, parts, phrase
-    return out
 
 
 def page_form(page):

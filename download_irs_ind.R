@@ -90,10 +90,11 @@ if (is.na(script_dir) || script_dir == '') script_dir = '.'
 
 FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items')
 
-# First tax year each family publishes. The default run spans their union
-# and every family is clamped to its own floor, so no year is fetched
-# pointlessly -- sole prop reaches back to 1996, line items to 2003 and the
-# geographic and by-size families only to 2011.
+# First tax year each family publishes. The default run spans their union and
+# every family is clamped to its own floor, so no year is fetched pointlessly.
+# by_size is 1996 only because Table 2.3 (exemptions) is mirrored complete as
+# a closed series; BY_SIZE_MODERN_FIRST holds the other fourteen tables at
+# 2011, so a 1996-2010 run emits exemptions and nothing else.
 FIRST_YEAR = c(geo = 2011, by_size = 1996, ira = 2000,
                sole_prop = 1996, w2 = 2014, line_items = 2003)
 
