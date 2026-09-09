@@ -174,6 +174,25 @@ def expand_range(first, last):
     return []
 
 
+REFERENCE_WORD = re.compile(r'^(lines?|schedules?|forms?|worksheets?)$', re.I)
+
+
+def follows_reference(band, token):
+    """Is this label really a cross-reference, e.g. "... Schedule 2, line 11"?
+
+    A trailing cross-reference can land its line number squarely in one of the
+    page's label columns, and it then beats the row's own label on the
+    rightmost rule -- TY2021 Form 8959 line 18 ends "...on Schedule 2 (Form
+    1040), line 11" and was filed under 11. A label introduced by "line",
+    "Schedule" or "Form" is pointing elsewhere, so it is not a candidate.
+    """
+    before = [w for w in band if w[2] <= token[0]]
+    if not before:
+        return False
+    prev = max(before, key=lambda w: w[2])[4].strip('(),.')
+    return bool(REFERENCE_WORD.match(prev))
+
+
 def line_relations(page):
     """[(target line, op, [component lines], phrase)] stated on a page.
 
@@ -206,7 +225,8 @@ def line_relations(page):
         # a wrapped description continues on the next printed line
         nxt = sorted(rows[i + 1], key=lambda w: w[0]) if i + 1 < len(rows) else []
         labels = [w for w in band if LABEL_TOKEN.match(w[4])
-                  and any(abs(w[0] - x) <= 3 for x in columns)]
+                  and any(abs(w[0] - x) <= 3 for x in columns)
+                  and not follows_reference(band, w)]
         if not labels:
             continue
         # Take the label printed beside the ENTRY COLUMN, not the leftmost one.

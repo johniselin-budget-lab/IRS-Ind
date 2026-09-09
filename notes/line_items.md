@@ -160,19 +160,19 @@ at the output caught (see above). The forms, however, state their own
 arithmetic — "Add lines 1z, 2b, 3b, 4b, 5b, 6b, 7, and 8", "Subtract line 10
 from line 9" — so every subtotal can be checked against its own components.
 `parse_line_items.py` records those statements in `aligned/line_relations.csv`
-(4,191 of them) and `check_arithmetic.R` evaluates them.
+(4,259 of them) and `check_arithmetic.R` evaluates them.
 
 **Amounts only.** Return *counts* are not additive: one return carries several
 component lines, so a total's count is not the sum of its parts.
 
 **Most stated arithmetic does not survive aggregation**, which is the main
 thing this check taught. The 4,191 statements dedupe to 2,103 distinct ones,
-of which **602 are outright nonlinear per return** — "if zero or less, enter
+of which **623 are outright nonlinear per return** — "if zero or less, enter
 -0-" floors a result, "enter the smaller of" caps it, and a sum of floored
 values is not the floor of the sum — and those are flagged and set aside.
-That leaves **1,501 linear statements**, of which **584 are fully evaluable**
+That leaves **1,519 linear statements**, of which **596 are fully evaluable**
 (the rest reference a line the parser did not extract, mostly on the
-grid-layout forms below). Of those 584, **66.8% reconcile exactly**.
+grid-layout forms below). Of those 596, **67.1% reconcile exactly**.
 
 Judging linearity is easy to get subtly wrong: an earlier version tested the
 row *plus the next printed row*, so a statement was set aside whenever the
@@ -192,9 +192,15 @@ one cause: the target label was a line number quoted **inside the phrase**, so
 the relation was filed under one of its own components ("Subtract line 5 from
 line 4" recorded against line 5, which belongs to line 6). A line is never
 defined in terms of itself, so the parser now rejects any such relation
-outright rather than guessing a target. Three remain, all Form 8959's "Add
-lines 7, 13, and 17" landing on line 4 or 11 instead of 18 — reported, not
-hidden.
+outright rather than guessing a target.
+
+The last three were subtler and are also fixed: a **trailing cross-reference
+can land its line number in one of the page's label columns** and then beat
+the row's own label. TY2021 Form 8959 line 18 ends "…also include this amount
+on Schedule 2 (Form 1040), line 11", so the relation was filed under 11. A
+label introduced by "line", "Schedule" or "Form" points elsewhere and is no
+longer a candidate. The check now reports **no relation resolved to the wrong
+line**.
 
 **Ranges are expanded or dropped, never narrowed.** "Combine lines 1 through
 8" originally matched only the list pattern, which kept the two endpoints and
@@ -221,11 +227,21 @@ Rscript check_arithmetic.R --dest /path/to/store   # writes checks/_arithmetic.c
   years can be requested explicitly and will warn; they are not emitted by
   default. The cover-page total is a plain text read, unaffected by this, and
   is collected for every vintage on disk.
-- **59 of TY2023's 65 forms** yield values. Six yield none — Form 4136, 8283,
-  8938, 8994, 8997 and Schedule EIC — and ten more are partial. These are
-  grid-layout forms whose values sit in matrix cells rather than beside a line
-  label, so the label-adjacency rule does not reach them. They need a cell
-  reconstruction pass from the ruling segments.
+- **57 of TY2023's 65 forms** yield values. Eight yield none (Forms 2439,
+  4136, 8283, 8880, 8938, 8994, 8997 and Schedule EIC) and fourteen more are
+  partial — always whole *form pages*, never one measure, since the returns
+  and amounts pages share a layout.
+
+  Across TY2018–2023, **368 of ~1,330 data pages yield nothing**. A first-cut
+  classification puts the largest group at **matrix/grid layouts** (~149
+  pages), where values sit in cells addressed by row *and column* rather than
+  beside a line label — Form 965-A's year columns, Schedule EIC's per-child
+  columns. Reaching those needs cell reconstruction from the ruling segments
+  **and a schema change**: `line_items.csv` has no column dimension. A further
+  ~156 fall in an "other" bucket that has not been diagnosed, ~51 have no
+  label column (some legitimately, like the 1040's page 1, whose estimates are
+  checkbox counts rather than line values), and ~12 are simply sparse. Treat
+  those proportions as a rough cut, not a diagnosis.
 - `line_text` is best effort and can be a fragment; it is for eyeballing, not
   for keying.
 
