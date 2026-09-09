@@ -176,6 +176,27 @@ the files:
 The SOI documentation guides themselves are downloaded alongside the data
 (`*docguide*` files in each destination folder).
 
+## Freshness
+
+**Last checked against irs.gov: 2026-09-09.** Nothing new had published.
+
+- **No TY2024 files exist yet** for any family — probed the by-size, IRA, sole
+  proprietorship, W-2 and geographic stubs directly. SOI typically posts the
+  autumn vintages from late September, so this is the window to re-check.
+- **Geographic files still trail**: HT2, county and state percentile shares
+  reach TY2023; **ZIP code data still stops at TY2022** (`23zpallagi.csv`
+  404s).
+- **The two moving-target PDFs are unchanged.** `/pub/irs-pdf/p4801.pdf` and
+  `p5385.pdf` always hold the newest tax year, so they can change content
+  without changing URL; both still md5-match the TY2023 revisions recorded in
+  `manifest.csv`, and no newer revision has appeared under `/pub/irs-prior/`.
+- A full sweep (`--dest <store> 1996 2024`) downloaded nothing and left
+  `manifest.csv` byte-identical at 618 files. Both harnesses still pass: 78
+  exact / 1 known difference / 0 unexplained.
+
+To refresh: re-run that sweep, then re-verify the md5 of the two current
+PDFs — those are the only files that can change underneath a stable URL.
+
 ## Coverage and source-naming quirks
 
 | Family | Years available | SOI filename pattern |

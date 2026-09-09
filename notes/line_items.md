@@ -166,11 +166,13 @@ from line 9" — so every subtotal can be checked against its own components.
 component lines, so a total's count is not the sum of its parts.
 
 **Most stated arithmetic does not survive aggregation**, which is the main
-thing this check taught. Of 4,243 statements, 1,082 are outright nonlinear per
-return — "if zero or less, enter -0-" floors a result, "enter the smaller of"
-caps it, and a sum of floored values is not the floor of the sum — and those
-are flagged and set aside. Of the linear remainder that is fully evaluable,
-**66.7% reconcile exactly**. The rest mostly fail for the same reason one step
+thing this check taught. The 4,243 statements dedupe to 2,129 distinct ones,
+of which **1,047 are outright nonlinear per return** — "if zero or less, enter
+-0-" floors a result, "enter the smaller of" caps it, and a sum of floored
+values is not the floor of the sum — and those are flagged and set aside.
+That leaves **1,082 linear statements**, of which only **439 are fully
+evaluable** (the rest reference a line the parser did not extract, mostly on
+the grid-layout forms below). Of those 439, **66.7% reconcile exactly**. The rest mostly fail for the same reason one step
 further out: lines that are conditional per return (an amount owed on one line
 *or* an overpayment on another) total over different sets of returns. So this
 is a **screen, not a gate** — `run_checks.R` remains the gate.
