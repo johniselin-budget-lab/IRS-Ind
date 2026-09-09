@@ -43,6 +43,7 @@
 #                      tax_pct_of_agi_{year}.xls
 #                      tax_liability_{year}.xls
 #                      tax_generated_byrate_{year}.xls
+#                      exemptions_{year}.xls      T2.3, closed series 1996-2017
 #   manifest.csv       path, source url, year, bytes, md5, retrieval date
 #
 # SOI file-naming quirks encoded below (verified against irs.gov 2026-07-12):
@@ -93,7 +94,7 @@ FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items')
 # and every family is clamped to its own floor, so no year is fetched
 # pointlessly -- sole prop reaches back to 1996, line items to 2003 and the
 # geographic and by-size families only to 2011.
-FIRST_YEAR = c(geo = 2011, by_size = 2011, ira = 2000,
+FIRST_YEAR = c(geo = 2011, by_size = 1996, ira = 2000,
                sole_prop = 1996, w2 = 2014, line_items = 2003)
 
 dest = file.path(script_dir, 'data')
@@ -219,10 +220,31 @@ targets_geo = function(year) {
 # starters (T1.6 2008, T1.7 2012, T2.7 2014, T3.1A 2008) simply 404 and are
 # skipped in earlier years.
 
+# Table 2.3, personal exemptions by size of AGI. A CLOSED series: the Tax Cuts
+# and Jobs Act repealed the personal exemption, so it runs TY1996-2017 and
+# stops (TY2018 probed, absent). It therefore reaches back well beyond the
+# 2011 floor the rest of this family is mirrored from, and TY1997 drops the
+# suffix entirely -- the same quirk the other Pub 1304 tables show that year.
+EXEMPTIONS_YEARS = 1996:2017
+BY_SIZE_MODERN_FIRST = 2011      # floor for the other 14 tables
+
+exemptions_file = function(yy, year) {
+  if (year == 1997) '97in23.xls' else sprintf('%sin23ar.xls', yy)
+}
+
 # --- by_size: national Pub 1304 basic tables by size of AGI ------------------
 targets_by_size = function(year) {
-  yy = sprintf('%02d', year %% 100)
-  list(
+  yy  = sprintf('%02d', year %% 100)
+  out = list()
+
+  if (year %in% EXEMPTIONS_YEARS) {
+    out = c(out, list(list(
+      url = file.path(SOI, exemptions_file(yy, year)),
+      to  = sprintf('national/by_size/exemptions_%d.xls', year), gz = FALSE)))  # T2.3
+  }
+  if (year < BY_SIZE_MODERN_FIRST) return(out)
+
+  c(out, list(
     list(url = file.path(SOI, sprintf('%sin11si.xls',  yy)),
          to  = sprintf('national/by_size/income_tax_items_%d.xls',    year), gz = FALSE),  # T1.1
     list(url = file.path(SOI, sprintf('%sin12ms.xls',  yy)),
@@ -251,7 +273,7 @@ targets_by_size = function(year) {
          to  = sprintf('national/by_size/tax_liability_%d.xls',              year), gz = FALSE),  # T3.3
     list(url = file.path(SOI, sprintf('%sin35tr.xls',  yy)),
          to  = sprintf('national/by_size/tax_generated_byrate_%d.xls',       year), gz = FALSE)   # T3.5
-  )
+  ))
 }
 
 # --- ira: accumulation and distribution of IRAs -----------------------------

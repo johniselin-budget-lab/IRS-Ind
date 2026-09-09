@@ -23,9 +23,12 @@ Sources: [Pub 1304 by-size-of-AGI page][p1304] · geographic pages:
 The store mirrors four geographic families (CSV, already tidy: consumers
 read them directly, no alignment layer needed beyond the documented variable
 chronology in the notes), **14 national by-size Pub 1304 tables** (TY2011–2023,
-raw `.xls`), and three national families added 2026-08-17 — IRA (213 files),
-sole proprietorship (68) and Form W-2 (8). Unlike IRS-Corp, there are **no
-aligned panels yet** — the by-size tables are the alignment target.
+raw `.xls`, plus Table 2.3 complete for 1996–2017), and three national
+families added 2026-08-17 — IRA (213 files), sole proprietorship (68) and
+Form W-2 (12) — and the Pub 4801 line item estimates (27 PDFs). 635 files in
+all. The only aligned output so far is the line-item panel
+([line_items.md](line_items.md)); the by-size tables remain the alignment
+target.
 
 ## Tier 1 — align the 14 mirrored by-size tables (2011–2023)
 
@@ -71,8 +74,14 @@ floor, under older filename suffixes (surveyed 2026-08):
 Work items: per-table filename maps in the downloader (the IRS-Corp
 `old_file()` pattern); **format-check the 1990s vintages** (the corporate
 1994–2002 files were BIFF4 — `read_biff4.py` is ready if these are too);
-then the aliases/stub mapping extend naturally. Table 2.3 (exemptions,
-1996–2017) could be mirrored as a closed series — discontinued by TCJA.
+then the aliases/stub mapping extend naturally.
+
+Table 2.3 (exemptions, 1996–2017) is **done** — mirrored complete as a closed
+series 2026-09-09, 22 files. It is a useful dry run for the rest of this tier,
+and it confirmed both expectations above: TY1997 does drop its suffix (bare
+`97in23.xls`), and the 1990s vintages are BIFF4 — though **TY1997 itself is
+not**, so format has to be checked per file rather than assumed from a
+cut-off year. See [national_bysize.md](national_bysize.md).
 
 ## Tier 3 — geographic families back in time (a mirroring decision)
 
@@ -89,8 +98,9 @@ download-and-store decision first, alignment second:
   per-state Excel workbooks (~54 files/year) — a large fan-out for modest
   gain; recommend deferring unless a consumer needs pre-2012 state × AGI.
 - **[State percentiles][pctl]**: begin TY2013; nothing to push back.
-- TY2023 geographic files were not yet published as of 2026-08 — rerun the
-  downloader when they land (the by-size tables already carry TY2023).
+- TY2023 geographic files have since landed for HT2, county and the state
+  percentile shares. **ZIP code data still trails at TY2022** (re-probed
+  2026-09-09); rerun the downloader when it appears.
 
 ## Proposed extension: five more SOI individual families
 

@@ -129,6 +129,8 @@ national/by_size/   income_sources_{year}.xls         SOI Complete-Report (Pub 1
                     tax_pct_of_agi_{year}.xls         T3.2: tax as % of AGI
                     tax_liability_{year}.xls          T3.3: liability, credits, payments
                     tax_generated_byrate_{year}.xls   T3.5: tax by marginal rate bracket
+                    exemptions_{year}.xls             T2.3: exemptions by type; closed
+                                                      series TY1996-2017, mirrored whole
 manifest.csv        path, source url, year, bytes, md5, retrieval date
 ```
 
@@ -190,9 +192,9 @@ The SOI documentation guides themselves are downloaded alongside the data
   `p5385.pdf` always hold the newest tax year, so they can change content
   without changing URL; both still md5-match the TY2023 revisions recorded in
   `manifest.csv`, and no newer revision has appeared under `/pub/irs-prior/`.
-- A full sweep (`--dest <store> 1996 2024`) downloaded nothing and left
-  `manifest.csv` byte-identical at 618 files. Both harnesses still pass: 78
-  exact / 1 known difference / 0 unexplained.
+- A full sweep (`--dest <store> 1996 2024`) finds nothing new. The store holds
+  **635 files**; both harnesses pass at 78 exact / 1 known difference / 0
+  unexplained.
 
 To refresh: re-run that sweep, then re-verify the md5 of the two current
 PDFs — those are the only files that can change underneath a stable URL.
@@ -210,6 +212,7 @@ PDFs — those are the only files that can change underneath a stable URL.
 | National by-size 2.5/3.1/3.2/3.3/3.5 | 2011–2023 | `{yy}in25ic` / `in31mt` / `in32tt` / `in33ar` / `in35tr` (`.xls`; published back to 1996–2003 under older suffixes, not pulled) |
 | National by-size 1.6 / 3.1A | 2011–2023 | `{yy}in16ag` / `in31amt` (`.xls`; published from 2008, pulled from the repo's 2011 floor) |
 | National by-size 1.7 / 2.7 | 2012–2023 / 2014–2023 | `{yy}in17dp` / `{yy}in27aca` (`.xls`; first published TY2012 and TY2014) |
+| National by-size 2.3 (exemptions) | 1996–2017, complete | `{yy}in23ar.xls`, but bare `97in23.xls` for TY1997. Closed series — repealed by TCJA, TY2018 probed and absent. TY1996 and 1998–2003 are BIFF4; TY1997 is not |
 | IRA tables 1–4 | 2000–2023 (no 2003) | `{yy}in{nn}ira.xls` → `.xlsx` from 2017; TY2000–2004 number files differently from tables (see notes/ira.md), TY2000 stem is `ir` |
 | IRA tables 5–6 / 7 / 8 / 9–10 | 2004–2023 / 2000–02, 2004, 2013–2023 / 2017–21, 2023 / 2018–2023 | same stub; Table 8 skips TY2022 |
 | IRA confidence intervals / CVs | 2022–2023 / 2018, 2020–2022 | `{yy}in{nn}iraci.xlsx` / `{yy}in{nn}ira-cv.xlsx` (CVs cover tables 1–7 only; TY2019 has none) |
