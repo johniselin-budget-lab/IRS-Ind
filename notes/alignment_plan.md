@@ -26,9 +26,9 @@ chronology in the notes), **14 national by-size Pub 1304 tables** (TY2011–2023
 raw `.xls`, plus Table 2.3 complete for 1996–2017), and three national
 families added 2026-08-17 — IRA (213 files), sole proprietorship (68) and
 Form W-2 (12) — the Pub 4801 line item estimates (27 PDFs), and the closed
-sales-of-capital-assets study (73). 708 files in all. The only aligned output so far is the line-item panel
-([line_items.md](line_items.md)); the by-size tables remain the alignment
-target.
+sales-of-capital-assets study (73). 708 files in all. The only aligned output
+so far is the line-item panel ([line_items.md](line_items.md)); the by-size
+tables remain the alignment target.
 
 ## Tier 1 — align the 14 mirrored by-size tables (2011–2023)
 
@@ -130,10 +130,11 @@ for a crosswalk.
 2. **Align 3.3 and 3.5**, then the rest of the 14 as demand dictates.
 3. **Extend the by-size downloader pre-2011** (filename maps + BIFF
    format check) and stretch the aligned panels back to 1996/1993.
-4. **The new families** ([expansion_plan.md](expansion_plan.md)): IRA, sole
-   prop and W-2 are mirrored; still to come are the line-item scraper with
-   its cross-check harness and the capital-assets series. Sole prop sector
-   panels (Tables 1–2, 1998–2023) and IRA by-AGI panels follow, reusing the
-   same engine.
+4. **The new families** ([expansion_plan.md](expansion_plan.md)): all five
+   are mirrored, and the line-item scraper with its two check harnesses is
+   built for TY2018–2023. What remains there is extraction coverage (matrix-
+   layout pages, pre-2018 vintages) and Pub 5385. Sole prop sector panels
+   (Tables 1–2, 1998–2023) and IRA by-AGI panels follow, reusing the same
+   engine.
 5. **Geographic backfill** (county, then ZIP) when a consumer needs
    pre-2011 geography; HT2 per-state fan-out only on demonstrated need.
