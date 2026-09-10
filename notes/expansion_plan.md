@@ -453,14 +453,20 @@ families ≈ 400 files, well under 200 MB.
    across ~57 forms a year in `aligned/line_items.csv`, gated on 79
    comparisons against Pub 1304: 78 exact, 1 known ±1 rounding difference, 0
    unexplained. No separate `align_line_items.R` was needed — the checks read
-   the emitted panel directly. Remaining: six grid-layout forms (4136, 8283,
-   8938, 8994, 8997, Schedule EIC) whose values sit in matrix cells rather
-   than beside a line label, and the pre-2018 universe split.
+   the emitted panel directly. Extended to TY2011 on 2026-09-10 (see 7).
+   Remaining: the grid-layout credit forms whose values sit in matrix cells
+   rather than beside a line label — about one estimate in seven, measured
+   properly in [line_items.md](line_items.md) — which need a column dimension
+   the schema does not have.
 6. **Extend the crosswalk** to Schedule C ↔ sole prop, Schedule D ↔ 1.4A/SOCA,
    IRA lines ↔ IRA tables, Pub 5385 ↔ W-2 tables. Each new family then arrives
    with a validation story rather than on trust.
-7. **Tier B then Tier C** line-item years; sole prop and IRA sector/AGI panels
-   using the IRS-Corp engine, interleaved with the by-size work in
+7. **Tier B** line-item years — **done** 2026-09-10: TY2011–2017 emitted and
+   validated at 12 comparisons a year (the blocker was the third Form 1040
+   universe, "Form 1040 only", that pre-2018 vintages print; see
+   [line_items.md](line_items.md)). Tier C (TY2003–2010) has no Pub 1304
+   targets to check against. Sole prop and IRA sector/AGI panels using the
+   IRS-Corp engine, interleaved with the by-size work in
    [alignment_plan.md](alignment_plan.md).
 
 ## 10. Open questions
@@ -469,7 +475,9 @@ families ≈ 400 files, well under 200 MB.
   year?~~ **Answered 2026-08-17**: yes for TY2011–2023, with three ±1
   last-digit rounding differences now pinned. Equality is the harness rule.
 - Are Pub 4801's electronically-filed panels worth carrying, or is the
-  all-returns universe sufficient for the intended consumers?
+  all-returns universe sufficient for the intended consumers? (They are
+  carried, as is the pre-2018 "Form 1040 only" universe; the `universe`
+  column makes any of the three selectable.)
 - Sole prop Tables 3/4 and the W-2 tables: discontinued or merely slow? Check
   the SOI Bulletin release schedule before promising anyone a panel.
 - Which consumer needs these first? `by_size/` was pulled for

@@ -1,4 +1,5 @@
 tax_year,line,measure,diff,reason
 2014,total_returns_filed,returns,1,"Pub 4801 prints 148,606,579 where Pub 1304 Table 1.1 prints 148,606,578 -- both raw cells verified 2026-08-17. The two publications round the same weighted estimate independently, so the last digit can differ by 1."
-2015,11,amount,1,"Pub 4801 10,210,310,103 vs Pub 1304 10,210,310,102 (raw cells verified); independent last-digit rounding."
+2015,37,amount,1,"Pub 4801 line 37 AGI 10,210,310,103 vs Pub 1304 Table 1.1 10,210,310,102 (raw cells verified 2026-08-17 and again 2026-09-10); independent last-digit rounding. Pre-2018 AGI is line 37, not 11."
 2017,37,amount,1,"Pub 4801 11,009,900,156 vs Pub 1304 11,009,900,155 (raw cells verified); independent last-digit rounding."
+2015,43,amount,-1,"Pub 4801 line 43 taxable income 7,350,295,491 vs Pub 1304 Table 1.4 7,350,295,492 (raw cell verified 2026-09-10); independent last-digit rounding."

@@ -1,80 +1,157 @@
 tax_year,form,universe,line,measure,target_file,header_pattern,stub_pattern,relation,note
 2011,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2011,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2011,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2011,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2012,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2012,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2012,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2012,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2013,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2013,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2013,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2013,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2014,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2014,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2014,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2014,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2015,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2015,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2015,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2015,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2016,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2016,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2016,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2016,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2017,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
+2017,Form 1040,all returns,37,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; pre-2018 Form 1040 line 37
+2017,Form 1040,all returns,43,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,43,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,8a,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,8a,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,8b,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,8b,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,9a,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,9a,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,9b,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
+2017,Form 1040,all returns,9b,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,pre-2018 Form 1040 line; stable 2011-2017
 2018,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
-2018,Form 1040,all returns,7,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
-2018,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2018,Form 1040,all returns,10,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
 2018,Form 1040,all returns,10,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2018,Form 1040,all returns,10,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2018,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2018,Form 1040,all returns,7,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
 2019,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
-2019,Form 1040,all returns,8b,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
-2019,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2019,Form 1040,all returns,11b,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
 2019,Form 1040,all returns,11b,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2019,Form 1040,all returns,11b,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2019,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2019,Form 1040,all returns,8b,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
 2020,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
 2020,Form 1040,all returns,11,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
-2020,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2020,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
 2020,Form 1040,all returns,15,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2020,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2020,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2020,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
 2021,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
 2021,Form 1040,all returns,11,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
-2021,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2021,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
 2021,Form 1040,all returns,15,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2021,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2021,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2021,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
 2022,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
 2022,Form 1040,all returns,11,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
-2022,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2022,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
 2022,Form 1040,all returns,15,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2022,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2022,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2022,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
 2023,(summary),all returns,total_returns_filed,returns,income_tax_items_{year}.xls,^All returns \| Number of returns \| 1$,^All returns,==,cover-page total vs Table 1.1 all-returns count
 2023,Form 1040,all returns,11,amount,income_tax_items_{year}.xls,^Adjusted gross income less deficit \| Amount \| 3$,^All returns,==,AGI; the 1040 line number moves 7 -> 8b -> 11
-2023,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
-2023,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
 2023,Form 1040,all returns,15,amount,income_sources_{year}.xls,^Taxable income.*\| Amount,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2023,Form 1040,all returns,15,returns,income_sources_{year}.xls,^Taxable income.*\| Number of returns,^All returns,==,taxable income; 1040 line moves 10 -> 11b -> 15
+2023,Form 1040,all returns,2a,amount,income_sources_{year}.xls,^Tax-exempt interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,2a,returns,income_sources_{year}.xls,^Tax-exempt interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,2b,amount,income_sources_{year}.xls,^Taxable interest.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,2b,returns,income_sources_{year}.xls,^Taxable interest.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,3a,amount,income_sources_{year}.xls,^Qualified dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,3a,returns,income_sources_{year}.xls,^Qualified dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,3b,amount,income_sources_{year}.xls,^Ordinary dividends.*\| Amount,^All returns,==,stable 1040 line across Tier A
+2023,Form 1040,all returns,3b,returns,income_sources_{year}.xls,^Ordinary dividends.*\| Number of returns,^All returns,==,stable 1040 line across Tier A

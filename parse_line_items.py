@@ -12,12 +12,13 @@ Outputs, under the download destination:
 
 Usage:  python3 parse_line_items.py <dest> [first_year] [last_year]
 
-Defaults to the validated years, TY2018-2023 (see notes/line_items.md): from
-TY2017 back, a vintage repeats the Form 1040 under two or three universes that
-the table of contents does not separate here, so the same line appears more
-than once and the universe column would be wrong. Earlier years can be
-requested explicitly; the run warns about every ambiguity it finds. The
-cover-page total is unaffected and is read for every year present.
+Defaults to the validated years, TY2011-2023 (see notes/line_items.md). Every
+vintage prints the Form 1040 for more than one population: all returns and
+electronically filed returns from TY2018, and before that a third universe,
+Form 1040 filers only, ahead of separate Forms 1040A and 1040EZ. The table of
+contents names them and the `universe` column carries them. Earlier years than
+2011 can be requested explicitly; the run warns about every ambiguity it
+finds, and the Pub 1304 targets the checks need only exist from 2011.
 
 Needs PyMuPDF (`import fitz`). NOTE: on this cluster `module load R/...` swaps
 the Python environment and hides it -- run this in a shell without R loaded.
@@ -53,7 +54,8 @@ LEGEND = re.compile(r'^(?P<name>Form\s+[\w-]+|Schedule\s+[\w-]+)\s*'
                     r'(?:\(Form[^)]*\))?\s*'
                     r'(?:\(?(?:Rev\.\s*)?\d{0,2}-?20\d\d\)?)$')
 
-TOC_ENTRY = re.compile(r'^(?P<title>.+?)[^\w\s)]{2,}\s*(?P<page>\d{1,3})\s*$')
+# "Returns......... 14" in most vintages; TY2011 writes "Returns...... pg 14".
+TOC_ENTRY = re.compile(r'^(?P<title>.+?)[^\w\s)]{2,}\s*(?:pg\.?\s*)?(?P<page>\d{1,3})\s*$', re.I)
 TOTAL_RETURNS = re.compile(
     r'([\d,]{7,})\s+Total,?\s+all individual returns\s+f\s*i\s*led', re.I)
 
@@ -336,16 +338,32 @@ def toc_sections(doc, max_page=12):
     return out
 
 
+def universe_of(heading):
+    """Which population a TOC section tabulates.
+
+    Every vintage prints the Form 1040 more than once. TY2018+ prints it for
+    all returns and again for electronically filed returns. TY2017 and
+    earlier print it THREE times -- all returns (every filer, consolidated
+    onto the 1040 layout), Form 1040 filers only, and electronically filed --
+    before separate sections for Forms 1040A and 1040EZ. Recognising only the
+    electronic heading labelled the "1040 only" pages as all returns, so
+    every 1040 line appeared twice and pre-2018 years could not be emitted.
+    """
+    h = (heading or '').lower()
+    if 'electronically' in h:
+        return 'electronically filed'
+    if 'form 1040 only' in h:
+        return 'form 1040 only'
+    return 'all returns'
+
+
 def classify(doc):
     """One record per data page: form, universe and measure."""
     toc = toc_sections(doc)
     starts = sorted({p for _, _, p in toc})
-    universe_at = {p: ('electronically filed'
-                       if heading and 'Electronically Filed' in heading
-                       else 'all returns')
-                   for heading, _, p in toc}
+    universe_at = {p: universe_of(heading) for heading, _, p in toc}
 
-    pages = []
+    pages, last_pp = [], None
     for i in range(doc.page_count):
         text = normalise(doc[i].get_text())
         measure = ('returns' if RETURNS_MARKER.search(text) else
@@ -353,6 +371,13 @@ def classify(doc):
         if measure is None:
             continue
         pp = printed_page(doc[i])
+        # TY2011's amounts pages print no page number in their header, so a
+        # page without one is taken to follow the previous data page. Without
+        # this every TY2011 amounts page fell to the default universe while its
+        # returns page did not, and the two halves of each table disagreed.
+        if pp is None and last_pp is not None:
+            pp = last_pp + 1
+        last_pp = pp
         owner = max([s for s in starts if pp is not None and s <= pp], default=None)
         pages.append(dict(pdf_page=i, printed=pp, measure=measure,
                           form=page_form(doc[i]),
@@ -492,5 +517,5 @@ if __name__ == '__main__':
     if not 2 <= len(sys.argv) <= 4:
         sys.exit('usage: parse_line_items.py <dest> [first_year] [last_year]')
     main(sys.argv[1],
-         int(sys.argv[2]) if len(sys.argv) > 2 else 2018,
+         int(sys.argv[2]) if len(sys.argv) > 2 else 2011,
          int(sys.argv[3]) if len(sys.argv) > 3 else 2023)

@@ -47,8 +47,8 @@ Rscript run_checks.R --dest /path/to/store        # writes checks/_report.csv
 ```
 
 `parse_line_items.py` writes `aligned/line_items.csv` — every extracted line
-of every form, for the validated years TY2018–2023 (10,890 values, ~57 forms
-a year). `run_checks.R` then compares that panel against the Pub 1304 tables
+of every form, for the validated years TY2011–2023 (24,838 values, ~57 forms
+a year, with the Form 1040 carried under each population it is printed for). `run_checks.R` then compares that panel against the Pub 1304 tables
 and exits non-zero on any unexplained mismatch, so it can gate a build. Note
 that `module load R/...` swaps the Python environment on this cluster — run
 the two steps in separate shells.
@@ -105,7 +105,7 @@ national/line_items/ p4801_{year}.pdf                 Line item estimates: every
                                                       cut. p5385_2018-2019.pdf is one
                                                       PDF Portfolio holding both years
 aligned/            line_items.csv                    every extracted form line,
-                                                      TY2018-2023 (see notes)
+                                                      TY2011-2023 (see notes)
                     line_relations.csv                the arithmetic each form
                                                       states about itself
 checks/             line_item_values.csv              cover-page totals, all vintages
@@ -205,8 +205,8 @@ The SOI documentation guides themselves are downloaded alongside the data
   without changing URL; both still md5-match the TY2023 revisions recorded in
   `manifest.csv`, and no newer revision has appeared under `/pub/irs-prior/`.
 - A full sweep (`--dest <store> 1985 2024`) finds nothing new. The store holds
-  **708 files**; both harnesses pass at 78 exact / 1 known difference / 0
-  unexplained.
+  **708 files**; the Pub 1304 gate passes at 152 exact / 4 known differences /
+  0 unexplained over 156 comparisons, TY2011–2023.
 
 To refresh: re-run that sweep, then re-verify the md5 of the two current
 PDFs — those are the only files that can change underneath a stable URL.
