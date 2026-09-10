@@ -19,6 +19,9 @@
 #                      county_{year}_noagi.csv.gz County income, county totals
 #   zip/               zip_{year}_agi.csv.gz      ZIP code data, by AGI class
 #                      zip_{year}_noagi.csv.gz    ZIP code data, ZIP totals
+#   national/capital_assets/ soca_t{n}_{year}.xls[x] Sales of capital assets study
+#                      soca_t{n}_1997rev.xlsx     (closed: 1985, 1997-99, 2007-15),
+#                      soca_panel_{range}_t{n}.xls plus the 1999-2007 panel tables
 #   national/line_items/ p4801_{year}.pdf          SOI line item estimates: every
 #                      p5385_{year}.pdf           form/schedule line, no AGI cut
 #   national/sole_prop/ sp_t{nn}_{year}.xls       Nonfarm sole proprietorship
@@ -63,10 +66,10 @@
 #   Rscript download_irs_ind.R --only by_size               # one family only
 #
 # Families (--only, comma-separated; default all): geo, by_size, ira,
-# sole_prop, w2, line_items. Flags may be given in any order; the two
-# positional arguments are the year range. Each family is clamped to the
-# first year it publishes (see FIRST_YEAR), so the default run covers
-# 1996-2023 without probing years a family lacks.
+# sole_prop, w2, line_items, capital_assets. Flags may be given in any order;
+# the two positional arguments are the year range. Each family is clamped to
+# the first year it publishes (see FIRST_YEAR), so the default run covers
+# 1985-2023 without probing years a family lacks.
 #
 # Budget Lab internal users: pass the lab's shared raw_data store (documented
 # internally) via --dest.
@@ -88,7 +91,8 @@ args = commandArgs(trailingOnly = TRUE)
 script_dir = dirname(sub('--file=', '', grep('--file=', commandArgs(), value = TRUE)[1]))
 if (is.na(script_dir) || script_dir == '') script_dir = '.'
 
-FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items')
+FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items',
+             'capital_assets')
 
 # First tax year each family publishes. The default run spans their union and
 # every family is clamped to its own floor, so no year is fetched pointlessly.
@@ -96,7 +100,8 @@ FAMILIES = c('geo', 'by_size', 'ira', 'sole_prop', 'w2', 'line_items')
 # a closed series; BY_SIZE_MODERN_FIRST holds the other fourteen tables at
 # 2011, so a 1996-2010 run emits exemptions and nothing else.
 FIRST_YEAR = c(geo = 2011, by_size = 1996, ira = 2000,
-               sole_prop = 1996, w2 = 2014, line_items = 2003)
+               sole_prop = 1996, w2 = 2014, line_items = 2003,
+               capital_assets = 1985)
 
 dest = file.path(script_dir, 'data')
 only = FAMILIES
@@ -146,6 +151,7 @@ message('Families:    ', paste(only, collapse = ', '))
 SOI       = 'https://www.irs.gov/pub/irs-soi'
 IRS_PDF   = 'https://www.irs.gov/pub/irs-pdf'      # current revision of a pub
 IRS_PRIOR = 'https://www.irs.gov/pub/irs-prior'    # superseded revisions
+IRS_TAI   = 'https://www.irs.gov/pub/irs-tai'      # one stray capital-assets file
 
 #---------------------------
 # Source file specifications
@@ -467,6 +473,80 @@ targets_line_items = function(year) {
   out
 }
 
+# --- capital_assets: the Sales of Capital Assets (Schedule D) study ---------
+# A CLOSED study: cross-section Tables 1-4 (gains and losses by asset type; by
+# AGI; by month of sale; by holding period) for TY1985, 1997-1999 and
+# 2007-2015, and nothing since -- TY2016-2018 stubs probed and absent. Pub 1304
+# Table 1.4A (national/by_size/capital_assets_{year}.xls) is the live
+# successor but carries none of the asset-type / month / holding-period detail.
+#
+# Eight filename eras for one table series, including a 2010-2012 stub that
+# TRANSPOSES the year and table number ({yy}0{n}insoca vs {yy}in0{n}soca).
+# TY1985/1997/1998/1999 each exist twice, as an unlisted BIFF4 .xls original
+# and the linked .xlsx re-save; the linked .xlsx is mirrored.
+#
+# Files that are not year-keyed are pinned to the first year they cover, so
+# the manifest's year column stays meaningful without a second mechanism:
+#   - the "1997 (Revised)" set is the 1998 publication's Tables 5a-8a, named
+#     here by CONTENT (5a is Table 1's subject, and so on) and pinned to 1997.
+#     The source page links it under /pub/irs-tai/ as .xlsx, but only the
+#     first of those four links resolves; the other three 404 to an HTML page.
+#     The same files are live under /pub/irs-soi/, which is used for 6a-8a;
+#   - the SOI Individual Panel tables (two waves, TY1999-2003 and 2004-2007)
+#     are pinned to 1999 and 2004. The 2004-07 wave names its Table 1
+#     `04-07in01st` but Tables 2-5 `07in0{n}..`, and its Table 5 is unlinked.
+# BEWARE the neighbour `07in01st.xls`: it is a 2007 STATE income table that
+# happens to share the stub, not a capital-assets file. See
+# notes/capital_assets.md.
+SOCA_YEARS = c(1985, 1997, 1998, 1999, 2007:2015)
+
+soca_file = function(yy, year, n) {
+  if (year == 1985) return(sprintf('85in0%dcg.xlsx', n))
+  if (year == 1997) return(sprintf('97soca%da.xlsx', n))
+  if (year == 1998) return(sprintf('98in%dab.xlsx', n))          # unpadded
+  if (year == 1999) return(sprintf('99in0%dab.xlsx', n))
+  if (year == 2007) return(sprintf('07in0%dab.xls', n))
+  if (year <= 2009) return(sprintf('%sin0%dsoca.xls', yy, n))
+  if (year <= 2012) return(sprintf('%s0%dinsoca.xls', yy, n))    # transposed
+  sprintf('%sin0%dsoca.xlsx', yy, n)
+}
+
+targets_capital_assets = function(year) {
+  yy   = sprintf('%02d', year %% 100)
+  soca = function(url, name) list(url = url, gz = FALSE,
+                                  to = file.path('national/capital_assets', name))
+  out = list()
+
+  if (year %in% SOCA_YEARS) {
+    tables = if (year == 2012) 1:9 else 1:4     # 2012 adds strata (T5) and CVs (T6-9)
+    for (n in tables) {
+      f   = soca_file(yy, year, n)
+      out = c(out, list(soca(file.path(SOI, f),
+                             sprintf('soca_t%d_%d.%s', n, year, tools::file_ext(f)))))
+    }
+  }
+  if (year == 1985) {                           # principal residences; installment sales
+    for (n in 5:6) out = c(out, list(soca(file.path(SOI, sprintf('85in0%dcg.xls', n)),
+                                          sprintf('soca_t%d_1985.xls', n))))
+  }
+  if (year == 1997) {
+    revised = c(file.path(IRS_TAI, '98in5ab.xlsx'), file.path(SOI, '98in6ab.xlsx'),
+                file.path(SOI, '98in7ab.xlsx'),     file.path(SOI, '98in8ab.xlsx'))
+    for (n in 1:4) out = c(out, list(soca(revised[n], sprintf('soca_t%d_1997rev.xlsx', n))))
+  }
+  if (year == 1999) {
+    stubs = c('99-03in01st', '99-03in02ai', '99-03in03tt', '99-03in04dr', '99-03in05st')
+    for (n in 1:5) out = c(out, list(soca(file.path(SOI, paste0(stubs[n], '.xls')),
+                                          sprintf('soca_panel_1999-2003_t%d.xls', n))))
+  }
+  if (year == 2004) {
+    stubs = c('04-07in01st', '07in02ai', '07in03tt', '07in04dr', '07in05st')
+    for (n in 1:5) out = c(out, list(soca(file.path(SOI, paste0(stubs[n], '.xls')),
+                                          sprintf('soca_panel_2004-2007_t%d.xls', n))))
+  }
+  out
+}
+
 # One flat target list for the families selected on the command line, each
 # clamped to the first year it publishes.
 targets = function(year, families) {
@@ -478,6 +558,7 @@ targets = function(year, families) {
   if (wanted('sole_prop'))  out = c(out, targets_sole_prop(year))
   if (wanted('w2'))         out = c(out, targets_w2(year))
   if (wanted('line_items')) out = c(out, targets_line_items(year))
+  if (wanted('capital_assets')) out = c(out, targets_capital_assets(year))
   out
 }
 

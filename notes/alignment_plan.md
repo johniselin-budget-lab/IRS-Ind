@@ -25,8 +25,8 @@ read them directly, no alignment layer needed beyond the documented variable
 chronology in the notes), **14 national by-size Pub 1304 tables** (TY2011–2023,
 raw `.xls`, plus Table 2.3 complete for 1996–2017), and three national
 families added 2026-08-17 — IRA (213 files), sole proprietorship (68) and
-Form W-2 (12) — and the Pub 4801 line item estimates (27 PDFs). 635 files in
-all. The only aligned output so far is the line-item panel
+Form W-2 (12) — the Pub 4801 line item estimates (27 PDFs), and the closed
+sales-of-capital-assets study (73). 708 files in all. The only aligned output so far is the line-item panel
 ([line_items.md](line_items.md)); the by-size tables remain the alignment
 target.
 

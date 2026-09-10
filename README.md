@@ -16,6 +16,9 @@ statistics**:
 - **line item estimates** (Pub 4801/5385, TY2003–2023): every line of every
   form and schedule, with no AGI cut. Because these share Pub 1304's weighted
   sample, they double as a cross-check on the rest of the store.
+- **sales of capital assets** (the Schedule D study: gains and losses by asset
+  type, month of sale and holding period, TY1985–2015, plus a 1999–2007
+  panel). A closed series; Pub 1304 Table 1.4A is its live successor.
 
 This repo holds the **code only** — data is downloaded on demand, either into
 the repo's own (gitignored) `data/` folder or to a separate location of your
@@ -29,7 +32,7 @@ directly); the IRA tables likewise, `.xls` through TY2016 and `.xlsx` after.
 ## Usage
 
 ```bash
-Rscript download_irs_ind.R                        # -> ./data, years 1996-2023
+Rscript download_irs_ind.R                        # -> ./data, years 1985-2023
 Rscript download_irs_ind.R 2017 2023              # custom year range
 Rscript download_irs_ind.R --dest /path/to/store  # separate destination
 Rscript download_irs_ind.R --only by_size         # one family only
@@ -62,13 +65,13 @@ survive aggregation — and its job is to surface the cases where a sum lands on
 the wrong line. See [notes/line_items.md](notes/line_items.md).
 
 Families for `--only` (comma-separated, default all): `geo` (the four
-by-geographic-area CSV sets and their documentation guides), `by_size` (the 14
-national Pub 1304 tables), `ira` (ten IRA tables plus their precision
-companions), `sole_prop` (Schedule C by industry), `w2` (Form W-2) and
-`line_items` (the Pub 4801/5385 PDFs). Flags may be given in any order; the
-two positional arguments are the year range. Each family is clamped to the
-first year it publishes, so the default run spans 1996–2023 without fetching
-years a family lacks.
+by-geographic-area CSV sets and their documentation guides), `by_size` (the
+Pub 1304 tables), `ira` (ten IRA tables plus their precision companions),
+`sole_prop` (Schedule C by industry), `w2` (Form W-2), `line_items` (the Pub
+4801/5385 PDFs) and `capital_assets` (the Schedule D study). Flags may be given
+in any order; the two positional arguments are the year range. Each family is
+clamped to the first year it publishes, so the default run spans 1985–2023
+without fetching years a family lacks.
 
 Budget Lab internal users: the canonical shared destination (already
 populated, with a consolidated `NOTES.md` at its root) is documented
@@ -92,6 +95,11 @@ county/             county_{year}_agi.csv.gz          County income data, by AGI
                     county_{year}_noagi.csv.gz        County income data, county totals
 zip/                zip_{year}_agi.csv.gz             ZIP code data, by AGI class
                     zip_{year}_noagi.csv.gz           ZIP code data, ZIP totals
+national/capital_assets/ soca_t{n}_{year}.xls[x]     Sales of capital assets study:
+                    soca_t{n}_1997rev.xlsx            Tables 1-4 (asset type / AGI /
+                    soca_panel_{range}_t{n}.xls       month / holding period) for 1985,
+                                                      1997-99, 2007-15; the revised
+                                                      1997 set; two panel waves
 national/line_items/ p4801_{year}.pdf                 Line item estimates: every line
                     p5385_{year}.pdf                  of every form/schedule, no AGI
                                                       cut. p5385_2018-2019.pdf is one
@@ -153,6 +161,10 @@ the files:
   TY2000–2004 file-vs-table numbering break, the missing TY2003, the BIFF4
   TY2000 files `readxl` cannot open, and three files the source page fails to
   link)
+- [notes/capital_assets.md](notes/capital_assets.md) — the Schedule D study
+  (incl. the eight filename eras, the transposed 2010–12 stub, the "1997
+  Revised" set that is really the 1998 publication's Tables 5–8, three dead
+  page links, and a neighbouring file that is not capital assets at all)
 - [notes/line_items.md](notes/line_items.md) — Pub 4801/5385 line item
   estimates (incl. the exact-agreement cross-check against Pub 1304 and its
   three ±1 rounding differences, the portfolio that holds two tax years, the
@@ -192,8 +204,8 @@ The SOI documentation guides themselves are downloaded alongside the data
   `p5385.pdf` always hold the newest tax year, so they can change content
   without changing URL; both still md5-match the TY2023 revisions recorded in
   `manifest.csv`, and no newer revision has appeared under `/pub/irs-prior/`.
-- A full sweep (`--dest <store> 1996 2024`) finds nothing new. The store holds
-  **635 files**; both harnesses pass at 78 exact / 1 known difference / 0
+- A full sweep (`--dest <store> 1985 2024`) finds nothing new. The store holds
+  **708 files**; both harnesses pass at 78 exact / 1 known difference / 0
   unexplained.
 
 To refresh: re-run that sweep, then re-verify the md5 of the two current
@@ -222,6 +234,8 @@ PDFs — those are the only files that can change underneath a stable URL.
 | Form W-2 | 2014, 2016–2020 | `{yy}inallw2.xls` (one workbook, Tables 1–7) through 2018, then `{yy}in0{n}w2all.xlsx` (four workbooks, Tables 1–4). Note the word order flips. TY2015 and TY2021+ probed and absent; the source page links only 2019–2020 |
 | Pub 4801 line items | 2003–2023 | `03linecnt` / `{YYYY}linecnt` / `{yy}inlinecount` / `p4801--{rev}` / current `p4801.pdf`; the revision token is a publication date, not derivable |
 | Pub 5385 line items | 2017–2023 | `p5385--{rev}` / current `p5385.pdf`; TY2018+2019 share one URL as a PDF Portfolio |
+| Capital assets Tables 1–4 | 1985, 1997–99, 2007–15 (closed) | eight stubs: `85in0{n}cg`, `97soca{n}a`, `98in{n}ab`, `99in0{n}ab`, `07in0{n}ab`, `{yy}in0{n}soca` (08–09), **`{yy}0{n}insoca`** (10–12, transposed), `{yy}in0{n}soca.xlsx` (13–15). TY2016+ probed, absent |
+| Capital assets extras | 1985 T5–6; 2012 T5–9; 1997 revised; panels | `85in0{5,6}cg.xls`; `120{n}insoca.xls`; `98in{5..8}ab.xlsx` (the page's `/pub/irs-tai/` links for 6–8 are dead — `/pub/irs-soi/` has them); `99-03in0{n}..` and `04-07in01st` + `07in0{n}..` |
 
 Other HT2 notes: the `N2` column is *number of exemptions* through tax year
 2017 and *number of individuals* from 2018 (TCJA); state rows include the 50

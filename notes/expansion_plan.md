@@ -27,7 +27,7 @@ distribution][ira] · [Form W-2 statistics][w2].
 |---|---|---|---|---|---|
 | Line items, Pub 4801 (individual) | TY2003–2023 | yes | PDF (form facsimiles) | 21 | **mirrored + Tier A scraped** |
 | Line items, Pub 5385 (info returns) | TY2017–2023 | yes | PDF (one is a portfolio) | 6 URLs / 7 years | **mirrored**; not yet scraped |
-| Sales of capital assets | 1985, 1997–1999, 2007–2015 (+ panels) | **no, ends TY2015** | xls/xlsx | ~70 | low |
+| Sales of capital assets | 1985, 1997–1999, 2007–2015 (+ panels) | **no, ends TY2015** | xls/xlsx | 73 | **done** |
 | Nonfarm sole proprietorship | T1/T2 1998–2023 NAICS (+ 1996–98 SIC); T3 2016–20, T4 2017–20 | yes (T1/T2) | xls | 68 | **done** |
 | IRA accumulation/distribution | T1–T4 2000–2023 (no 2003); T5–T10 shorter | yes | xls → xlsx 2017+ | 213 | **done** |
 | Form W-2 statistics | TY2014, 2016–2020 (no 2015) | stalled since TY2020 | xls → xlsx 2019+ | 12 | **done** |
@@ -281,6 +281,13 @@ Recommendation: **mirror SOCA as a closed historical series** and document 1.4A
 as the live successor in both notes files, so a future reader does not go
 looking for TY2016+.
 
+**Done 2026-09-10** — 73 files, `notes/capital_assets.md`. Two corrections to
+the survey above: the "revised 1997" set is *not* all under `/pub/irs-tai/`
+(only one of the four links there resolves; the rest 404, and `/pub/irs-soi/`
+carries the full set), and the panel wave for 2004–07 has an unlinked Table 5
+(`07in05st.xls`). The neighbouring `07in01st.xls` is a 2007 *state* table, not
+capital assets — do not let a stub-pattern sweep pick it up.
+
 Coverage: cross-section Tables 1–4 for 1985, 1997 (+ a revised 1997 set),
 1998, 1999, and 2007–2015 — **no 2000–2006**. Tables 5–9 (stratum definitions
 and coefficients of variation) exist for TY2012 only. Panel tables cover
@@ -436,8 +443,9 @@ families ≈ 400 files, well under 200 MB.
 2. **Mirror the three easy families** — all **done** 2026-08-17: IRA (213
    files, `notes/ira.md`), sole proprietorship (68, `notes/sole_prop.md`) and
    W-2 (8, `notes/w2.md`).
-3. **Mirror capital assets** as a closed series; add the TY2016+ successor
-   note to `notes/national_bysize.md` so 1.4A is findable from both directions.
+3. **Mirror capital assets** as a closed series — **done** 2026-09-10 (73
+   files, `notes/capital_assets.md`); `notes/national_bysize.md` now points
+   from Table 1.4A back to it.
 4. **Mirror Pub 4801/5385 PDFs and stand up the check harness** — **done**
    2026-08-17: 27 files, `notes/line_items.md`, `parse_line_items.py`,
    `run_checks.R`, `checks/`.

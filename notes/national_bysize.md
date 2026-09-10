@@ -22,7 +22,7 @@ of returns (SOI sample estimates, not a full count).
 | Repo file | SOI table | SOI source stub | Contents |
 |---|---|---|---|
 | `income_sources_{year}.xls`     | **1.4**  | `{yy}in14ar.xls`  | Sources of income, adjustments, deductions, exemptions, tax — every income line by AGI class |
-| `capital_assets_{year}.xls`     | **1.4A** | `{yy}in14acg.xls` | Sales of capital assets (Sch. D) detail: short/long-term gain & loss by AGI class |
+| `capital_assets_{year}.xls`     | **1.4A** | `{yy}in14acg.xls` | Sales of capital assets (Sch. D) detail: short/long-term gain & loss by AGI class. The live successor to the dedicated study in `national/capital_assets/` ([capital_assets.md](capital_assets.md)), which ended at TY2015 but carries asset type, month of sale and holding period that 1.4A does not |
 | `income_tax_items_{year}.xls`   | **1.1**  | `{yy}in11si.xls`  | Selected income & tax items; AGI, taxable income, tax after credits — with **cumulative** ("accumulated size") rows |
 | `marital_status_{year}.xls`     | **1.2**  | `{yy}in12ms.xls`  | Sources of income cross-tabulated by **marital/filing status** × AGI class |
 | `itemized_deductions_{year}.xls`| **2.1**  | `{yy}in21id.xls`  | Itemized deductions in detail by AGI class |
