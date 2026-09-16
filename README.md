@@ -77,6 +77,17 @@ Budget Lab internal users: the canonical shared destination (already
 populated, with a consolidated `NOTES.md` at its root) is documented
 internally — pass it via `--dest`.
 
+`NOTES.md` is assembled from `notes/` by a separate script, because the
+downloader deliberately never writes it:
+
+```
+Rscript build_notes.R --dest /path/to/store
+```
+
+Edit the per-family note in `notes/` and re-run that; do not edit the copy
+placed with the data. Adding a family means adding it to `NOTE_ORDER` in
+`build_notes.R`, which stops if it finds a note it has not been told about.
+
 The script is idempotent (existing files are skipped; delete a file to
 re-fetch), tolerates unpublished years (HTTP 404s skipped with a message),
 and rewrites a checksummed `manifest.csv` (path, source URL, year, bytes,
