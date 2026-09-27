@@ -104,8 +104,8 @@ classes above $500k, versus HT2's single `$1M+`. The `Taxable returns` and
 
 `align_bysize.R` writes one long panel per family, every mirrored year
 stacked, one row per published cell: `tax_year, table, family, row_seq,
-panel, section, row_label, row_agi_lo, row_agi_hi, col_seq, col_group,
-col_label, col_agi_lo, col_agi_hi, value, flag`.
+panel, section, row_label, row_agi_lo, row_agi_hi, col_seq, col_label,
+col_group, item, col_agi_lo, col_agi_hi, value, flag`.
 
 - **panel** is the stacked block, opened by its own total row ("Taxable
   returns, total", "Returns of single persons, total"); **section** is the
@@ -123,11 +123,22 @@ col_label, col_agi_lo, col_agi_hi, value, flag`.
 - **flag**: `caution` (`*`), `combined` (`**`; a combined zero is `NA`, a
   nonzero one is the cell that received the count), `d` (suppressed, `NA`),
   `-` (none reported, `0`), or a footnote marker (`[2]`, `NA`).
-- **Labels are as published, not harmonized.** `_bysize_labels.csv` lists
-  the years each `(col_group, col_label)` appears in. Known drift: the wage
-  column of 1.4 and 1.7 reads "Total wages" in TY2022 (1.4 keeps it in 2023,
-  a broader concept with a "Total from Form W-2 wages" sub-column; 1.7
-  returns to "Salaries and wages"), and TCJA's 2018 one-offs above.
+- **col_group and col_label are as published; item is cleaned.** `item`
+  is the lower-cased `col_group > col_label` with differences of *form*
+  removed and nothing else: case, hyphens, quotes, a year stamp equal to
+  tax_year + 1 (`{next year}`), and the regex rewrites in
+  `checks/bysize_label_synonyms.csv`, each with its reason there (typos,
+  spelled-out abbreviations, spanner paths that moved over unchanged items,
+  and three relabels verified by arithmetic or continuity: 2.1's medical
+  columns TY2011–2014 and 1.7's TY2022 wage column). The run stops if a rule
+  folds two columns of one year into one item. `_bysize_labels.csv` lists
+  the years each item appears in and the published labels it gathers (105
+  items gather more than one). **Concept changes are not resolved here** —
+  a category split or merged, a law change — see
+  [bysize_panels_plan.md](bysize_panels_plan.md). The 1.4 wage column is
+  one: "Salaries and wages" (through TY2021) continues as "Total wages >
+  Total" (TY2022 on, $9.02T → $9.74T, +7.9% against +7.2% the year before)
+  with new components under it, not as the Form W-2 sub-column.
 
 **Checks** (the script exits non-zero on an unexplained failure):
 - `_bysize_additivity.csv` — each panel total against the sum of its size

@@ -322,3 +322,34 @@ extract_bysize_sheet = function(path, helper_dir) {
   attr(df, 'title') = gsub('\\s+', ' ', m[if (length(title_rows)) title_rows[1] else 1, 1])
   df
 }
+
+#-------------------------------------------------
+# Label cleanup (align_bysize.R)
+#-------------------------------------------------
+
+# The column's item key: col_group > col_label with differences of FORM
+# removed, never differences of meaning. Applied in order:
+#   1. case, hyphens and dashes, quotes, whitespace ("S-corporation" = "S
+#      corporation", "Social security" = "Social Security")
+#   2. a year stamp equal to tax_year + 1 becomes {next year} ("Credited to
+#      2012 estimated tax" in TY2011)
+#   3. regex rewrites (perl) from checks/bysize_label_synonyms.csv
+#      (family, from, to, reason; family '*' for all), each justified there:
+#      typos, spelled-out abbreviations, spanner paths that moved without the
+#      item changing
+# A merge that changes what is counted is a concept change and belongs in
+# the concept map instead.
+item_key = function(family, col_group, col_label, tax_year, synonyms) {
+  k = ifelse(col_group == '', col_label, paste(col_group, '>', col_label))
+  k = tolower(k)
+  k = gsub('["\u201c\u201d]', '', k)
+  k = gsub('\\s*[-\u2013\u2014]+\\s*', ' ', k)
+  k = trimws(gsub('\\s+', ' ', k))
+  k = mapply(function(s, y) gsub(as.character(y + 1), '{next year}', s, fixed = TRUE),
+             k, tax_year, USE.NAMES = FALSE)
+  for (i in seq_len(nrow(synonyms))) {
+    hit = synonyms$family[i] == '*' | family == synonyms$family[i]
+    k[hit] = gsub(synonyms$from[i], synonyms$to[i], k[hit], perl = TRUE)
+  }
+  k
+}

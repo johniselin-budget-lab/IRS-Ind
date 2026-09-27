@@ -1,0 +1,27 @@
+family,from,to,reason
+*,\btaxable ira distributions\b,taxable individual retirement arrangement (ira) distributions,abbreviation spelled out from TY2014
+*,individual retirement arrangements \(ira\) distributions,individual retirement arrangement (ira) distributions,plural in Table 2.1 TY2019 only
+*,(section 965\) income as shareholders of certain foreign corporations) income,\1,the same stray 'income' before a measure
+*,\bstate local income taxes\b,state and local income taxes,typo in Table 2.1 TY2018/2019/2021 ('State local')
+*,not reported on line w 2 wages,not reported on form w 2 wages,TY2023 wording of the same Form 1040 line 1c
+*,withheld from w2\b,withheld from form w2,TY2020-2021 wording of the same withholding item
+*,\bregulat\b,regular,typo in Table 3.1A TY2014-2015
+*,refueling prop\. credit,refueling property credit,abbreviated in Table 3.3 TY2021-2023
+*,"after march 31, 2021 and before october 1, 2021","after march 31, 2021",same leave window (the credit ended Sept 30 2021); TY2022-2023 wording
+exemptions,^exemptions for dependents > total\b,total,TY1996-2004: the parent spanner covers under 80% of that block's columns so it survives; from TY2005 it spans the table and is dropped
+exemptions,^number of exemptions$,total number of exemptions,column 2 in every year; relabelled TY2007
+form8615,^tax differences due to.*schedule d computation.*regular tax computation$,tax differences due to schedule d computation vs. regular tax computation,one column (5) worded three ways TY2011-2023
+form8615,^tax differences due to regular tax computation vs. with schedule d computation$,tax differences due to schedule d computation vs. regular tax computation,TY2011-2013 wording of column 5
+modified_taxable_income,^average income tax \(dollars\)$,total income tax > average income tax (dollars),TY2019 drops the parent spanner over the same column
+modified_taxable_income,as a percentage of > adjusted gross income$,as a percentage of > adjusted gross income less deficit,TY2011-2014 wording; SOI's AGI totals are always AGI less deficit
+itemized_deductions,interest paid deduction > (home mortgage interest|deductible points)\b,interest paid deduction > total mortgage interest and points > \1,TY2018 adds a subtotal spanner over the same items
+itemized_deductions,interest paid deduction > qualified mortgage insurance premiums,interest paid deduction > total mortgage interest and points > mortgage insurance premiums,same deduction; TY2019 drops 'qualified' and nests it under the new subtotal
+itemized_deductions,taxes paid deduction > state and local taxes >,taxes paid deduction > total state and local taxes > state and local income taxes or general sales taxes >,TY2018 nests the income-or-sales-tax choice under a new pre-cap subtotal
+itemized_deductions,taxes paid deduction > (real estate|personal property) taxes,taxes paid deduction > total state and local taxes > \1 taxes,TY2018 nests the same items under the pre-cap subtotal
+tax_liability,^(tax credits) > nonrefundable credits > other nonrefundable credits (> (?!total\b)),\1 \2,TY2021 nests the same credits under new subtotal spanners
+tax_liability,^(tax credits) > nonrefundable credits (> (?!total\b|other nonrefundable credits\b)),\1 \2,TY2021 nests the same credits under new subtotal spanners
+tax_liability,^tax credits > nonrefundable child and other dependent tax credit,tax credits > child and other dependent tax credit,TY2021 adds 'nonrefundable' as the refundable part moves to its own column
+tax_liability,^tax credits > child care credit,tax credits > credit for child and dependent care,renamed TY2022 (Form 2441 credit)
+itemized_deductions,medical and dental expenses deduction > (expenses in excess of agi limitation|medical and dental expenses limitation) >,medical and dental expenses deduction > agi limitation >,"TY2011-2014 labels of the AGI limitation itself: the column equals total medical expenses minus the deduction (TY2011: 129,126,252 - 84,873,406 = 44,252,846; verified 2026-09-26)"
+itemized_deductions,(medical and dental expenses deduction) > total (>),\1 > total after subtracting agi limitation \2,"TY2011-2014 'Total' is the deduction after the AGI floor, relabelled TY2015 (84.9B in 2014, 86.9B in 2015)"
+dependent_returns,^total wages >,salaries and wages >,"Table 1.7 relabels its single wage column in TY2022 only (61.0B in 2021, 72.5B in 2022, 79.2B in 2023 as 'Salaries and wages' again)"

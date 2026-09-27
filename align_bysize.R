@@ -9,8 +9,11 @@
 # Output, under <dest>/aligned/:
 #   bysize_{family}.csv   one row per published cell, all years stacked:
 #       tax_year, table, family, row_seq, panel, section, row_label,
-#       row_agi_lo, row_agi_hi, col_seq, col_group, col_label,
+#       row_agi_lo, row_agi_hi, col_seq, col_label, col_group, item,
 #       col_agi_lo, col_agi_hi, value, flag
+#     item is the column's key with differences of form cleaned away
+#     (alignment_helpers.R::item_key and checks/bysize_label_synonyms.csv);
+#     col_group and col_label stay as published.
 #     family is the store's file stem (returns_marital_age = Table 1.6; the
 #     map is in notes/national_bysize.md). Values are as published: money in
 #     $ thousands, counts in returns. AGI bounds are dollars, [lo, hi), with
@@ -22,10 +25,10 @@
 #   _bysize_crosstable.csv  returns by AGI class in every all-returns table
 #     against Table 1.4's, both summed to the classes the two share (Table
 #     3.5's $2,000 steps against 1.4's, 1.4's split at $250k in TY2011-2012)
-#   _bysize_labels.csv  coverage: the years each (family, col_group,
-#     col_label) appears in. Labels drift (Table 1.4's and 1.7's wage column
-#     reads "Total wages" in TY2022) and are NOT harmonized here -- a merge is
-#     adopted only after a continuity check at the seam (alignment_plan.md)
+#   _bysize_labels.csv  coverage: the years each (family, item) appears in,
+#     with the published labels it gathers. Concept changes (a category split
+#     or merged, a law change) are NOT resolved here; that is the panel
+#     layer's job (notes/bysize_panels_plan.md)
 #
 # Usage:
 #   Rscript align_bysize.R                          # this repo's data/
@@ -63,6 +66,10 @@ rounding_tolerance = function(n_classes) n_classes
 # class compared (both are rounded from the same weighted sample)
 CROSSTABLE_TOLERANCE_PER_CLASS = 2
 
+# Rewrites that remove differences of form from column labels
+LABEL_SYNONYMS = utils::read.csv(file.path(script_dir, 'checks', 'bysize_label_synonyms.csv'),
+                                 stringsAsFactors = FALSE)
+
 # Tables whose universe is all returns, so their returns-by-AGI must agree
 # with Table 1.4's (the same weighted sample)
 ALL_RETURNS_FAMILIES = c('income_tax_items', 'marital_status', 'returns_marital_age',
@@ -87,6 +94,18 @@ for (fam in unique(family_of)) {
           table = table_no, family = fam, d, stringsAsFactors = FALSE)
   })
   panels[[fam]] = do.call(rbind, parts)
+  p = panels[[fam]]
+  p$item = item_key(p$family, p$col_group, p$col_label, p$tax_year, LABEL_SYNONYMS)
+  # a cleanup rule that folds two published columns of one year together has
+  # merged a difference of meaning, not of form
+  cols = unique(p[, c('tax_year', 'item', 'col_seq')])
+  folded = cols[duplicated(cols[, c('tax_year', 'item')]), ]
+  if (nrow(folded) > 0) {
+    stop(fam, ': label cleanup folds distinct columns into one item: ',
+         paste(unique(paste(folded$tax_year, folded$item)), collapse = '; '))
+  }
+  panels[[fam]] = p[, append(setdiff(names(p), 'item'), 'item',
+                             after = which(names(p) == 'col_group'))]
   if (length(unique(panels[[fam]]$table)) != 1) {
     stop(fam, ': files carry more than one table number: ',
          paste(unique(panels[[fam]]$table), collapse = ', '))
@@ -102,11 +121,15 @@ for (fam in unique(family_of)) {
 #-----------------------
 
 labels = do.call(rbind, lapply(panels, function(d) {
-  u = unique(d[, c('family', 'table', 'col_group', 'col_label', 'tax_year')])
-  a = aggregate(tax_year ~ family + table + col_group + col_label, u, function(y)
-    paste(sort(y), collapse = ' '))
+  u = unique(d[, c('family', 'table', 'item', 'tax_year')])
+  a = aggregate(tax_year ~ family + table + item, u, function(y) paste(sort(y), collapse = ' '))
   names(a)[names(a) == 'tax_year'] = 'years'
   a$n_years = lengths(strsplit(a$years, ' '))
+  published = unique(d[, c('item', 'col_group', 'col_label')])
+  published$label = ifelse(published$col_group == '', published$col_label,
+                           paste(published$col_group, '>', published$col_label))
+  a$published_labels = vapply(a$item, function(k)
+    paste(unique(published$label[published$item == k]), collapse = ' || '), character(1))
   a
 }))
 utils::write.csv(labels, file.path(aligned_dir, '_bysize_labels.csv'), row.names = FALSE)

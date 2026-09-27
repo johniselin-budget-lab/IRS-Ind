@@ -143,10 +143,11 @@ targets Tables 1.6, 1.4 and 1.7. So:
    each combined (`**`) cell folded into the neighbour that received its
    count, published here so Tax-Data does not reimplement the rule. Needs a
    way to identify the receiving cell, which the panels do not yet record.
-2. **Label harmonization where a consumer needs it**, starting with 1.4's
-   wage column ("Total wages" in TY2022–2023, a broader concept than
-   "Salaries and wages"; seam continuity check at 2021/2022). The full alias
-   table across all 15 tables waits for demand.
+2. **Harmonized table-specific panels** — label cleanup of form is done
+   automatically in the aligned layer (`item`); concept changes are
+   resolved as condense / expand / other per
+   [bysize_panels_plan.md](bysize_panels_plan.md), starting with 1.6, 1.4
+   and 1.7.
 3. **Tier 2, the by-size tables before 2011.** Cheaper than first planned:
    the engine already reads the BIFF4 files (2.3's TY1996–2003), so the work
    is mostly per-table filename maps in the downloader. No current consumer
