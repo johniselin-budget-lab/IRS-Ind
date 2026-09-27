@@ -143,7 +143,9 @@ col_group, item, col_agi_lo, col_agi_hi, value, flag`.
 **Checks** (the script exits non-zero on an unexplained failure):
 - `_bysize_additivity.csv` — each panel total against the sum of its size
   classes (and, in 1.6, of its age rows), within one unit per class of
-  rounding. A missing value is explained when its cell says why — `combined`,
+  rounding, for every additive column (`is_additive()`: everything but
+  percents of a total, percent-of ratios and averages; 20,337 comparisons
+  as of 2026-09-26). A missing value is explained when its cell says why — `combined`,
   `suppressed` (`d`), `footnote` (a `[n]` cell, as in 3.3's credit columns),
   `no_total` (the total itself suppressed or combined) — and fails as `blank`
   when the cell is simply empty. A group that has size classes but no single

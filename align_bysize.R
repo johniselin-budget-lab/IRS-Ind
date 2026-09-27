@@ -54,9 +54,6 @@ by_size_dir = file.path(dest, 'national', 'by_size')
 aligned_dir = file.path(dest, 'aligned')
 dir.create(aligned_dir, showWarnings = FALSE)
 
-# Column labels that are not additive across size classes
-NONADDITIVE_REGEX = 'percent|average|rate|ratio|mean|median'
-
 # Size-class rounding: every published cell is rounded to a whole unit, so a
 # total can miss the sum of n classes by up to about n/2 units. The check
 # allows one unit per class, twice that, as notes/national_bysize.md states.
@@ -188,8 +185,7 @@ check_group = function(g, axis) {
 additivity = list()
 for (fam in names(panels)) {
   d = panels[[fam]]
-  d = d[!grepl(NONADDITIVE_REGEX, tolower(paste(d$col_group, d$col_label))) &
-          !grepl('accumulated', tolower(d$section)), ]
+  d = d[is_additive(d$item) & !grepl('accumulated', tolower(d$section)), ]
   if (any(!is.na(d$row_agi_lo))) {
     # classes down the rows: one comparison per (year, panel, section, column)
     key = paste(d$tax_year, d$panel, d$section, d$col_seq, sep = '\r')

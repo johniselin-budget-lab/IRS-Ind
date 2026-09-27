@@ -353,3 +353,13 @@ item_key = function(family, col_group, col_label, tax_year, synonyms) {
   }
   k
 }
+
+# Is a column additive across size classes (and across disjoint categories)?
+# Percents of a total, percent-of ratios and averages are not. Matched on the
+# cleaned item key and on whole words: a bare 'rate' would also catch
+# "corporation", "separately" and "generated", and 'percent' alone would catch
+# Table 3.5's rate groups ("15 percent > income taxed at rate") and 3.2's
+# ratio bands, all of which are additive dollars or counts.
+is_additive = function(item) {
+  !grepl('percent of|percentage|average|\\bmean\\b|\\bmedian\\b|\\bratio\\b', item, perl = TRUE)
+}
