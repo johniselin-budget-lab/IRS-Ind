@@ -84,6 +84,13 @@ across years resolved (see
 Rscript harmonize_bysize.R --dest /path/to/store  # writes aligned/panel_*.csv
 ```
 
+Table 1.6 as reweighting targets, with SOI's combined cells folded into
+blocks and every margin checked (see the same note, "Table 1.6 target view"):
+
+```bash
+Rscript build_t16_targets.R --dest /path/to/store # writes aligned/targets_returns_marital_age.csv
+```
+
 Families for `--only` (comma-separated, default all): `geo` (the four
 by-geographic-area CSV sets and their documentation guides), `by_size` (the
 Pub 1304 tables), `ira` (ten IRA tables plus their precision companions),
@@ -147,6 +154,9 @@ aligned/            line_items.csv                    every extracted form line,
                                                       years (harmonize_bysize.R)
                     _panel_{seams,changes}.csv        its seam report and the
                                                       catalogue of changes
+                    targets_returns_marital_age.csv   Table 1.6 as targets: cells, with
+                                                      combined cells in blocks
+                    _t16_target_checks.csv            its margin checks
 checks/             line_item_values.csv              cover-page totals, all vintages
                     _report.csv                       the run_checks.R report
                     _arithmetic.csv                   the check_arithmetic.R report

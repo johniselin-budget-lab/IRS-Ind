@@ -145,15 +145,11 @@ consumer is Tax-Data's per-year filer refit, TY2018–2023 (its
 scaled only by filing status × age leave too many low-income filers), which
 targets Tables 1.6, 1.4 and 1.7. So:
 
-1. **A merged Table 1.6 target view** — age × filing status × AGI class
-   with the combined (`**`) cells folded into target blocks, published here
-   so Tax-Data does not reimplement the rule. A combined cell does not pair
-   with one receiving neighbour: of the 267 (year, status block, AGI column)
-   groups holding combined cells, 113 have one zeroed cell and one receiver
-   in the column; in the rest the count moved across AGI columns or the
-   counts differ. So the unit is a *block*: a connected set of `**` cells
-   (adjacent across rows or columns), targeted as its sum, with the check
-   that every published margin still adds up once blocks replace cells.
+1. **A merged Table 1.6 target view — built 2026-09-27**
+   (`build_t16_targets.R`, `aligned/targets_returns_marital_age.csv`):
+   combined (`**`) cells folded into blocks of connected cells, every
+   checkable margin balancing. See [national_bysize.md](national_bysize.md),
+   "Table 1.6 target view".
 2. **Tier 2, the by-size tables before 2011.** Cheaper than first planned:
    the engine already reads the BIFF4 files (2.3's TY1996–2003), so the work
    is mostly per-table filename maps in the downloader. No current consumer

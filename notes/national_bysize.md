@@ -171,7 +171,39 @@ combined cells move counts **between age rows** within an AGI column, so an
 age row's AGI classes can miss its own total by millions (TY2018 18–25: 21.09M
 across classes against 23.29M) while every age column still adds up. A fit
 targeting 1.6 by age × AGI should merge the combined cells with their
-receiving neighbour rather than target them as zeros.
+receiving neighbour rather than target them as zeros — which is what the
+target view below does.
+
+## Table 1.6 target view (`aligned/targets_returns_marital_age.csv`)
+
+`build_t16_targets.R` publishes Table 1.6 as reweighting targets: one row
+per interior cell (status block × age band × AGI class), with every combined
+(`**`) cell assigned to a **block** — a connected set of `**` cells, adjacent
+across rows or columns, in one status block. A block's published values sum
+to its true total (`block_value`), which is the target; every other cell is
+its own target. Columns: `tax_year, panel, age, agi_lo, agi_hi, value, flag,
+block_id, block_n_cells, block_value`.
+
+- **Why blocks, not pairs.** A blanked cell has no single partner: counts
+  move across age rows (TY2018: under 18 and 18–25 at $40–75k into 26–34, one
+  six-cell block of 9.63M returns) or across AGI columns, and one receiver
+  absorbs several blanked cells.
+- **Checked against the margins** (`_t16_target_checks.csv`): for every row
+  (against the "All returns" column) and column (against the block's total
+  row), the published total less the published cells is zero, or cancels
+  across the lines a block group touches. As of 2026-09-27 every checkable
+  margin balances in TY2011–2023. The 12 groups whose own total is combined
+  (married filing separately and surviving spouses, TY2011–2014) cannot be
+  checked.
+- **TY2011's unflagged receiver.** Its heads-of-household and
+  surviving-spouse blocks blank the $500k–1M column and put the counts in the
+  flagged $100k–200k cells two columns over, so the separate blocks do not
+  balance and their union does (−13,848 + 13,138 + 707 = −3 returns). The
+  script merges blocks in failing groups into one unit and rechecks; it stops
+  if the merged unit still fails.
+- **Size:** 589 cells a year TY2018–2023, reduced to 541–573 target units
+  (4–14 blocks). Surviving spouses are a separate block TY2011–2014 and part
+  of the joint block from TY2015, as published.
 
 ## Harmonized panels (`aligned/panel_{family}.csv`)
 
