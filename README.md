@@ -218,13 +218,15 @@ the files:
   tables by size of AGI (table→filename map, the fine top brackets, $thousands
   units, multi-row headers, TCJA-2018 combined IRA/pension one-off)
 - [notes/alignment_plan.md](notes/alignment_plan.md) — the standing plan:
-  aligned cross-year panels for the by-size tables, pushing them back to
-  1996/1993, and geographic backfill options
-- [notes/expansion_plan.md](notes/expansion_plan.md) — the standing plan for
-  the families still to come: line-item estimates (Pub 4801/5385, with a
-  PDF-scraping design and a harness that cross-checks them against the Pub
-  1304 tables), sales of capital assets, nonfarm sole proprietorships, and
-  Form W-2 statistics (IRA, its first family, is now mirrored)
+  cross-year panels for the by-size tables (Tier 1, built: aligned and
+  harmonized layers), the merged Table 1.6 target view next, pushing the
+  tables back to 1996/1993, and geographic backfill options
+- [notes/bysize_panels_plan.md](notes/bysize_panels_plan.md) — the design
+  and as-built record of the harmonized panels
+- [notes/expansion_plan.md](notes/expansion_plan.md) — the plan for the five
+  national families added 2026-08 (line-item estimates, sales of capital
+  assets, sole proprietorships, Form W-2, IRA), all now mirrored; what
+  remains is extraction coverage and their aligned panels
 
 The SOI documentation guides themselves are downloaded alongside the data
 (`*docguide*` files in each destination folder).

@@ -27,18 +27,25 @@ raw `.xls`, plus Table 2.3 complete for 1996–2017), and three national
 families added 2026-08-17 — IRA (213 files), sole proprietorship (68) and
 Form W-2 (12) — the Pub 4801 line item estimates (27 PDFs), and the closed
 sales-of-capital-assets study (73). 708 files in all. The aligned outputs are
-the line-item panel ([line_items.md](line_items.md)) and, since 2026-09-26,
-the by-size panels (Tier 1 below).
+the line-item panel ([line_items.md](line_items.md)) and, since 2026-09-26–27,
+the by-size panels in two layers, aligned and harmonized (Tier 1 below).
 
 ## Tier 1 — align the 14 mirrored by-size tables (2011–2023)
 
-**Status 2026-09-26: built** — `align_bysize.R` + `alignment_helpers.R`
-(a trimmed port of the IRS-Corp engine) + `read_xls_cells.py`; all 15
-families (2.3 included, 1996–2017) parse and pass the additivity and
-cross-table checks. See [national_bysize.md](national_bysize.md), "Aligned
-panels". **Not done:** label harmonization (alias table with seam
-continuity checks) — the coverage report `_bysize_labels.csv` is its input.
-The plan as first written follows.
+**Status 2026-09-27: built, both layers.**
+- *Aligned* (`aligned/bysize_{family}.csv`): `align_bysize.R` +
+  `alignment_helpers.R` (a trimmed port of the IRS-Corp engine) +
+  `read_xls_cells.py`. All 15 families (2.3 included, 1996–2017) parse; the
+  run is gated on additivity and cross-table checks, with differences of
+  label *form* cleaned into `item` (`checks/bysize_label_synonyms.csv`).
+  See [national_bysize.md](national_bysize.md), "Aligned panels".
+- *Harmonized* (`aligned/panel_{family}.csv`): `harmonize_bysize.R` with
+  the concept map `checks/bysize_concepts.csv` resolves every concept change
+  across years as condense / expand / other, with seam reports. See
+  [bysize_panels_plan.md](bysize_panels_plan.md).
+
+Rebuilding both layers from the committed code reproduces the store byte
+for byte (checked 2026-09-27). The plan as first written follows.
 
 Long panels per table, `aligned/{table}.csv` at the store, following the
 IRS-Corp recipe. What the engine port has to handle (see
@@ -132,29 +139,28 @@ for a crosswalk.
 
 ## Recommended order
 
-Revised 2026-09-26. Steps 1–2 of the original order (port the IRS-Corp
-engine, align 1.1, then 3.3 and 3.5) are done for all 15 tables. The next
+Revised 2026-09-27. Tier 1 is done for all 15 tables, both layers. The next
 consumer is Tax-Data's per-year filer refit, TY2018–2023 (its
 `research/state_weights/notes/low_income_filer_aging.md`: filer weights
 scaled only by filing status × age leave too many low-income filers), which
 targets Tables 1.6, 1.4 and 1.7. So:
 
-1. **A merged Table 1.6 target view** — age × filing status × AGI class with
-   each combined (`**`) cell folded into the neighbour that received its
-   count, published here so Tax-Data does not reimplement the rule. Needs a
-   way to identify the receiving cell, which the panels do not yet record.
-2. **Harmonized table-specific panels** — label cleanup of form is done
-   automatically in the aligned layer (`item`); concept changes are
-   resolved as condense / expand / other per
-   [bysize_panels_plan.md](bysize_panels_plan.md), starting with 1.6, 1.4
-   and 1.7.
-3. **Tier 2, the by-size tables before 2011.** Cheaper than first planned:
+1. **A merged Table 1.6 target view** — age × filing status × AGI class
+   with the combined (`**`) cells folded into target blocks, published here
+   so Tax-Data does not reimplement the rule. A combined cell does not pair
+   with one receiving neighbour: of the 267 (year, status block, AGI column)
+   groups holding combined cells, 113 have one zeroed cell and one receiver
+   in the column; in the rest the count moved across AGI columns or the
+   counts differ. So the unit is a *block*: a connected set of `**` cells
+   (adjacent across rows or columns), targeted as its sum, with the check
+   that every published margin still adds up once blocks replace cells.
+2. **Tier 2, the by-size tables before 2011.** Cheaper than first planned:
    the engine already reads the BIFF4 files (2.3's TY1996–2003), so the work
    is mostly per-table filename maps in the downloader. No current consumer
    needs it.
-4. **The new families** ([expansion_plan.md](expansion_plan.md)): extraction
+3. **The new families** ([expansion_plan.md](expansion_plan.md)): extraction
    coverage for the line items (matrix-layout pages, pre-2018 vintages), Pub
    5385, then sole prop sector panels (Tables 1–2, 1998–2023) and IRA by-AGI
    panels on the same engine.
-5. **Geographic backfill** (county, then ZIP) when a consumer needs
+4. **Geographic backfill** (county, then ZIP) when a consumer needs
    pre-2011 geography; HT2 per-state fan-out only on demonstrated need.
