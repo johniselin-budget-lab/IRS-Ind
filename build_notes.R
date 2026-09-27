@@ -29,13 +29,13 @@ if (is.na(script_dir) || script_dir == '') script_dir = '.'
 
 # Reading order: the four by-geographic-area families first, since they are what
 # most consumers arrive for, then the national ones. Planning documents
-# (alignment_plan, expansion_plan) are repo-internal and deliberately excluded --
+# (alignment_plan, expansion_plan, bysize_panels_plan) are repo-internal and deliberately excluded --
 # they describe work to be done, not the data that is here.
 NOTE_ORDER = c('ht2', 'percentile', 'county', 'zip',
                'national_bysize', 'ira', 'sole_prop', 'w2', 'line_items',
                'capital_assets')
 
-PLANNING_NOTES = c('alignment_plan', 'expansion_plan')
+PLANNING_NOTES = c('alignment_plan', 'expansion_plan', 'bysize_panels_plan')
 
 dest = file.path(script_dir, 'data')
 
