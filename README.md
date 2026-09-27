@@ -64,6 +64,18 @@ than a gate — most stated arithmetic is conditional per return and does not
 survive aggregation — and its job is to surface the cases where a sum lands on
 the wrong line. See [notes/line_items.md](notes/line_items.md).
 
+Align the Pub 1304 by-size tables into long panels (see
+[notes/national_bysize.md](notes/national_bysize.md), "Aligned panels"):
+
+```bash
+Rscript align_bysize.R --dest /path/to/store      # writes aligned/bysize_*.csv
+```
+
+It reads cells through `read_xls_cells.py` (python3 + xlrd), because SOI's
+`*`/`**` disclosure marks are Excel number formats that `readxl` drops, and
+exits non-zero if a size-class total or a cross-table return count fails
+without a combined or suppressed cell to explain it.
+
 Families for `--only` (comma-separated, default all): `geo` (the four
 by-geographic-area CSV sets and their documentation guides), `by_size` (the
 Pub 1304 tables), `ira` (ten IRA tables plus their precision companions),
@@ -119,6 +131,10 @@ aligned/            line_items.csv                    every extracted form line,
                                                       TY2011-2023 (see notes)
                     line_relations.csv                the arithmetic each form
                                                       states about itself
+                    bysize_{family}.csv               each Pub 1304 by-size table as a
+                                                      long panel, every mirrored year
+                    _bysize_{additivity,crosstable,labels}.csv  its checks and
+                                                      label coverage (align_bysize.R)
 checks/             line_item_values.csv              cover-page totals, all vintages
                     _report.csv                       the run_checks.R report
                     _arithmetic.csv                   the check_arithmetic.R report

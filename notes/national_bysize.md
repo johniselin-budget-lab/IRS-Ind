@@ -93,9 +93,72 @@ classes above $500k, versus HT2's single `$1M+`. The `Taxable returns` and
   return in 2019. QBI deduction and the capped SALT enter 2018; personal
   exemptions disappear.
 - Disclosure: small cells flagged `*`/`**` and sometimes combined; footnotes
-  live in the bottom rows of each sheet.
+  live in the bottom rows of each sheet. **The marks are number formats, not
+  text** (`"** "#,##0;...`): `readxl` returns the bare number, so a combined
+  cell reads as a true `0`. Read the format (xlrd `formatting_info=True`) or
+  use the aligned panels below.
 - File format has stayed `.xls` (not `.xlsx`) through 2023 — the `.xlsx` URL
   404s. Re-verify the naming when extending to newer years.
+
+## Aligned panels (`aligned/bysize_{family}.csv`)
+
+`align_bysize.R` writes one long panel per family, every mirrored year
+stacked, one row per published cell: `tax_year, table, family, row_seq,
+panel, section, row_label, row_agi_lo, row_agi_hi, col_seq, col_group,
+col_label, col_agi_lo, col_agi_hi, value, flag`.
+
+- **panel** is the stacked block, opened by its own total row ("Taxable
+  returns, total", "Returns of single persons, total"); **section** is the
+  last label-only row (1.1's "Accumulated from smallest size …" — cumulative
+  classes, not a partition; 2.5/3.1's return groups).
+- **col_group** is the merged spanners over the column, ` > `-joined ("Total
+  wages > Total from Form W-2 wages", "Returns of heads of households >
+  Taxable income"); **col_label** the column's own header ("Number of
+  returns", "Amount"; in 1.6 the AGI class). **col_seq** is the published
+  column number, continuing across the pre-2005 stacked column blocks of 2.3.
+- **AGI bounds** are dollars, `[lo, hi)`, on whichever axis carries the
+  classes — rows everywhere except 1.6, where they are columns. `No adjusted
+  gross income` is `(-Inf, 1)`; an open bottom class in a table without one
+  ("Under $5,000", 2.3 and 3.1) is `(-Inf, 5000)`. Totals have `NA` bounds.
+- **flag**: `caution` (`*`), `combined` (`**`; a combined zero is `NA`, a
+  nonzero one is the cell that received the count), `d` (suppressed, `NA`),
+  `-` (none reported, `0`), or a footnote marker (`[2]`, `NA`).
+- **Labels are as published, not harmonized.** `_bysize_labels.csv` lists
+  the years each `(col_group, col_label)` appears in. Known drift: the wage
+  column of 1.4 and 1.7 reads "Total wages" in TY2022 (1.4 keeps it in 2023,
+  a broader concept with a "Total from Form W-2 wages" sub-column; 1.7
+  returns to "Salaries and wages"), and TCJA's 2018 one-offs above.
+
+**Checks** (the script exits non-zero on an unexplained failure):
+- `_bysize_additivity.csv` — each panel total against the sum of its size
+  classes (and, in 1.6, of its age rows), within one unit per class of
+  rounding. A missing value is explained when its cell says why — `combined`,
+  `suppressed` (`d`), `footnote` (a `[n]` cell, as in 3.3's credit columns),
+  `no_total` (the total itself suppressed or combined) — and fails as `blank`
+  when the cell is simply empty. A group that has size classes but no single
+  total row, or classes that do not tile, is written as `no_total_row` /
+  `not_partition` rather than dropped (none as of 2026-09-26). As of
+  2026-09-26 every comparison passes or is explained; the combined ones
+  mostly show a count moved between neighbouring classes (± pairs).
+- `_bysize_crosstable.csv` — returns by AGI class in 1.1, 1.2, 1.6, 2.3, 3.3
+  and 3.5 against 1.4, each pair summed to the classes both tables can
+  express (3.5 publishes $2,000 steps to $20,000; 2.3 opens with "Under
+  $5,000"; 1.4 splits $200k–$500k at $250k in TY2011–2012). Tolerance: 2
+  returns per class summed. A table on the list that yields no comparison
+  for a year 1.4 covers fails the run. Identical in every year except
+  **TY2015 Table 3.5**, whose total runs 1,008 returns above 1.4's
+  (150,494,271 against 150,493,263; 1.1 agrees with 1.4) — it was tabulated
+  from a slightly different file. Those four class differences are pinned in
+  `checks/bysize_known_differences.csv`, exact value only, like the line-item
+  harness's `known_differences.csv`.
+
+**Table 1.6 for reweighting.** Status × age totals reproduce Tax-Data's
+`resources/return_counts_2023.csv` exactly (168 cells, TY2017–2023). Its
+combined cells move counts **between age rows** within an AGI column, so an
+age row's AGI classes can miss its own total by millions (TY2018 18–25: 21.09M
+across classes against 23.29M) while every age column still adds up. A fit
+targeting 1.6 by age × AGI should merge the combined cells with their
+receiving neighbour rather than target them as zeros.
 
 ## Known consumers
 

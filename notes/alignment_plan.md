@@ -1,6 +1,6 @@
 # Alignment plan: cross-year panels for the individual tables
 
-Status as of 2026-08. Companion to [national_bysize.md](national_bysize.md)
+Status as of 2026-09-26. Companion to [national_bysize.md](national_bysize.md)
 (file structure, table→filename map, TCJA gotchas) and the per-family
 geographic notes ([ht2.md](ht2.md), [percentile.md](percentile.md),
 [county.md](county.md), [zip.md](zip.md)). Modeled on the IRS-Corp repo's
@@ -26,11 +26,19 @@ chronology in the notes), **14 national by-size Pub 1304 tables** (TY2011–2023
 raw `.xls`, plus Table 2.3 complete for 1996–2017), and three national
 families added 2026-08-17 — IRA (213 files), sole proprietorship (68) and
 Form W-2 (12) — the Pub 4801 line item estimates (27 PDFs), and the closed
-sales-of-capital-assets study (73). 708 files in all. The only aligned output
-so far is the line-item panel ([line_items.md](line_items.md)); the by-size
-tables remain the alignment target.
+sales-of-capital-assets study (73). 708 files in all. The aligned outputs are
+the line-item panel ([line_items.md](line_items.md)) and, since 2026-09-26,
+the by-size panels (Tier 1 below).
 
 ## Tier 1 — align the 14 mirrored by-size tables (2011–2023)
+
+**Status 2026-09-26: built** — `align_bysize.R` + `alignment_helpers.R`
+(a trimmed port of the IRS-Corp engine) + `read_xls_cells.py`; all 15
+families (2.3 included, 1996–2017) parse and pass the additivity and
+cross-table checks. See [national_bysize.md](national_bysize.md), "Aligned
+panels". **Not done:** label harmonization (alias table with seam
+continuity checks) — the coverage report `_bysize_labels.csv` is its input.
+The plan as first written follows.
 
 Long panels per table, `aligned/{table}.csv` at the store, following the
 IRS-Corp recipe. What the engine port has to handle (see
@@ -124,17 +132,28 @@ for a crosswalk.
 
 ## Recommended order
 
-1. **Port the IRS-Corp engine and align Table 1.1** (2011–2023 first) —
-   settles the Number/Amount pair handling and panel splitting that
-   everything else reuses.
-2. **Align 3.3 and 3.5**, then the rest of the 14 as demand dictates.
-3. **Extend the by-size downloader pre-2011** (filename maps + BIFF
-   format check) and stretch the aligned panels back to 1996/1993.
-4. **The new families** ([expansion_plan.md](expansion_plan.md)): all five
-   are mirrored, and the line-item scraper with its two check harnesses is
-   built for TY2018–2023. What remains there is extraction coverage (matrix-
-   layout pages, pre-2018 vintages) and Pub 5385. Sole prop sector panels
-   (Tables 1–2, 1998–2023) and IRA by-AGI panels follow, reusing the same
-   engine.
+Revised 2026-09-26. Steps 1–2 of the original order (port the IRS-Corp
+engine, align 1.1, then 3.3 and 3.5) are done for all 15 tables. The next
+consumer is Tax-Data's per-year filer refit, TY2018–2023 (its
+`research/state_weights/notes/low_income_filer_aging.md`: filer weights
+scaled only by filing status × age leave too many low-income filers), which
+targets Tables 1.6, 1.4 and 1.7. So:
+
+1. **A merged Table 1.6 target view** — age × filing status × AGI class with
+   each combined (`**`) cell folded into the neighbour that received its
+   count, published here so Tax-Data does not reimplement the rule. Needs a
+   way to identify the receiving cell, which the panels do not yet record.
+2. **Label harmonization where a consumer needs it**, starting with 1.4's
+   wage column ("Total wages" in TY2022–2023, a broader concept than
+   "Salaries and wages"; seam continuity check at 2021/2022). The full alias
+   table across all 15 tables waits for demand.
+3. **Tier 2, the by-size tables before 2011.** Cheaper than first planned:
+   the engine already reads the BIFF4 files (2.3's TY1996–2003), so the work
+   is mostly per-table filename maps in the downloader. No current consumer
+   needs it.
+4. **The new families** ([expansion_plan.md](expansion_plan.md)): extraction
+   coverage for the line items (matrix-layout pages, pre-2018 vintages), Pub
+   5385, then sole prop sector panels (Tables 1–2, 1998–2023) and IRA by-AGI
+   panels on the same engine.
 5. **Geographic backfill** (county, then ZIP) when a consumer needs
    pre-2011 geography; HT2 per-state fan-out only on demonstrated need.

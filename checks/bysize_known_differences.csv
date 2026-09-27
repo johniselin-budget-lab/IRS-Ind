@@ -1,0 +1,5 @@
+family,tax_year,agi_lo,agi_hi,diff,reason
+tax_generated_byrate,2015,40000,50000,1004,"Table 3.5 prints 11,626,422 returns where Table 1.4 prints 11,625,418 (raw cells verified 2026-09-26). 3.5's TY2015 total is 150,494,271 against 1.4's 150,493,263 -- 1,008 more returns -- and 1.1 agrees with 1.4, so 3.5 was tabulated from a slightly different TY2015 file."
+tax_generated_byrate,2015,75000,100000,988,"Table 3.5 prints 12,822,779 where Table 1.4 prints 12,821,791 (raw cells verified 2026-09-26); same TY2015 file difference as the $40,000 class."
+tax_generated_byrate,2015,100000,200000,-988,"Table 3.5 prints 18,531,605 where Table 1.4 prints 18,532,593 (raw cells verified 2026-09-26); same TY2015 file difference as the $40,000 class."
+tax_generated_byrate,2015,2000000,5000000,3,"Table 3.5 prints 116,721 where Table 1.4 prints 116,718 (raw cells verified 2026-09-26); same TY2015 file difference as the $40,000 class."
