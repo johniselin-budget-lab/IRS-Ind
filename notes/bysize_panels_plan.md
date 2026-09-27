@@ -67,23 +67,36 @@ the consistent classes to the panel total; and a seam report per
 condense/expand entry (last year before vs first year after, total and
 components) so a bad mapping shows as a jump.
 
-## Decisions needed before building
+## Decisions
 
-1. **Partnership + S corporation in Table 1.4 (split TY2021).** The published
-   columns are *net income* and *net loss*, netted per return across
-   partnership and S corporation income together. Summing the separately
-   netted components does not recover them (a return with a partnership gain
-   and an S corporation loss counts differently). Proposal: the consistent
+1. **Partnership + S corporation in Table 1.4 (split TY2021) — decided
+   2026-09-26: net.** The published columns are *net income* and *net loss*,
+   netted per return across partnership and S corporation income together,
+   so the separately netted components cannot recover them. The consistent
    total is **net income less net loss**, which is additive and exact
-   (TY2020 combined 707.4B; TY2021 components 975.7B). The combined
-   gain and loss columns are NA from TY2021 with a note. Returns: NA.
-2. **IRA + pensions (combined in TY2018 only; 1.4, 2.1).** The consistent
-   total can only be the **taxable** amount (taxable IRA + taxable pensions:
-   1,015.7B in TY2017, 1,087.2B published TY2018, 1,109.5B TY2019). The
-   combined *gross* total exists only in TY2018 because 1.4 never publishes
-   gross IRA distributions, so it stays `other`.
-3. **Returns in non-exclusive totals** (rule above): NA rather than an
-   estimate. Confirm.
+   (TY2020 combined 707.4B; TY2021 components 975.7B). Confirmed
+   independently: Pub 4801 Schedule E line 32, "total partnership and S
+   corporation income or (loss)", prints 975,656,400 for TY2021 (and
+   707,431,778 for TY2020). The combined gain and loss columns are NA from
+   TY2021 with a note.
+2. **IRA + pensions (combined in TY2018 only; 1.4, 2.1) — decided
+   2026-09-26: flag as other.** No consistent total is built; the TY2018
+   combined items and the separate IRA and pension items are all flagged
+   `other`, with a note naming the other side of the seam.
+3. **Return counts in totals whose components overlap — open.** A sum of
+   component counts overcounts returns that sit in both. What an estimate
+   could rest on differs by case:
+   - *National anchor exists* (partnership + S corporation): Schedule E
+     line 32's return count is exactly Table 1.4's combined count in
+     TY2019–2020 (8,939,959; 9,001,513) and continues after the split
+     (9,331,698 in TY2021, against 10,524,718 for the summed components:
+     a 12.8% overcount). By AGI class there is no anchor, so class values
+     would be an allocation of that national figure.
+   - *Overlap observable in one year* (IRA + pensions): TY2018 publishes the
+     combined count by AGI class; the ratio to the mean of TY2017 and
+     TY2019 component sums runs 0.76–0.90 by class (0.795 overall).
+   - *Nothing to anchor on* (energy credits, sick leave windows, 1.4A basis
+     categories): bounds only, [largest component, sum of components].
 
 ## Per table
 
@@ -111,8 +124,8 @@ published in some years only. "Returns" in a total means number of returns.
 ### 1.4 Sources of income — `income_sources`, TY2011–2023
 - **Panel**: year × panel × AGI class × item × measure. 19 classes (15 in
   sub-panels) [$250k split TY2011–2012].
-- **Condense**: IRA distributions + pensions and annuities → one item in
-  TY2018 (decision 2): total = taxable amount; components NA in TY2018.
+- **Other** (decision 2): IRA distributions + pensions and annuities
+  combined in TY2018 only.
 - **Expand**:
   - Wages, TY2022: "Salaries and wages" (≤2021) is the total, continued by
     "Total wages > Total" ($9.02T 2021 → $9.74T 2022, +7.9% against +7.2%
@@ -128,8 +141,7 @@ published in some years only. "Returns" in a total means number of returns.
   (≤2019, and a 2018 co-op pass-through); Archer MSA, foreign housing,
   capital construction fund (≤2019); tuition and fees (≤2020); unemployment
   exclusion (2020); charitable deduction for non-itemizers (2020–2021);
-  excess advance premium tax credit repayment (2014+); the gross combined
-  IRA + pensions of TY2018.
+  excess advance premium tax credit repayment (2014+).
 
 ### 1.4A Capital assets — `capital_assets`, TY2012–2023
 - **Panel**: year × panel × AGI class × holding period × basis category ×
@@ -161,8 +173,8 @@ published in some years only. "Returns" in a total means number of returns.
 - **Panel**: year × panel × AGI class × item × measure. 22 classes, $5k
   steps to $60k [$250k split TY2011–2012]. Universe: returns with itemized
   deductions.
-- **Condense**: taxable IRA + taxable pensions → one item in TY2018 (total =
-  sum in other years; returns NA there; components NA in TY2018).
+- **Other** (decision 2): taxable IRA + taxable pensions combined in TY2018
+  only.
 - **Expand**: wages TY2022 (as 1.4).
 - **Other**:
   - TCJA suspensions: limited miscellaneous deductions (5 items), the
