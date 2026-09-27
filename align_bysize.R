@@ -135,12 +135,6 @@ utils::write.csv(labels, file.path(aligned_dir, '_bysize_labels.csv'), row.names
 # Additivity
 #-----------------------
 
-# Do the classes [lo, hi) tile one interval with no gap or overlap?
-is_partition = function(lo, hi) {
-  o = order(lo)
-  length(lo) >= 2 && all(hi[o][-length(o)] == lo[o][-1])
-}
-
 # Status of one total-against-classes comparison. A missing value is
 # explained when its cell says why (combined, suppressed, footnote-only) and
 # unexplained -- 'blank' -- when the cell is simply empty.

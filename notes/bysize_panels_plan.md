@@ -1,6 +1,8 @@
 # Plan: table-specific harmonized panels for the Pub 1304 by-size tables
 
-Status 2026-09-26: **plan, not built.** Companion to
+Status 2026-09-27: **built** — `harmonize_bysize.R` with the concept map
+`checks/bysize_concepts.csv`, all 15 tables (see "As built" at the end).
+Companion to
 [national_bysize.md](national_bysize.md) ("Aligned panels": the layer this
 builds on) and [alignment_plan.md](alignment_plan.md) (Tier 1, now done).
 
@@ -77,26 +79,24 @@ components) so a bad mapping shows as a jump.
    (TY2020 combined 707.4B; TY2021 components 975.7B). Confirmed
    independently: Pub 4801 Schedule E line 32, "total partnership and S
    corporation income or (loss)", prints 975,656,400 for TY2021 (and
-   707,431,778 for TY2020). The combined gain and loss columns are NA from
-   TY2021 with a note.
+   707,431,778 for TY2020). As built, the published gain and loss columns
+   (combined through TY2020, separate from TY2021) are kept and flagged
+   `other`, with no NA filler, since no consistent total exists for them.
 2. **IRA + pensions (combined in TY2018 only; 1.4, 2.1) — decided
    2026-09-26: flag as other.** No consistent total is built; the TY2018
    combined items and the separate IRA and pension items are all flagged
    `other`, with a note naming the other side of the seam.
-3. **Return counts in totals whose components overlap — open.** A sum of
-   component counts overcounts returns that sit in both. What an estimate
-   could rest on differs by case:
-   - *National anchor exists* (partnership + S corporation): Schedule E
-     line 32's return count is exactly Table 1.4's combined count in
-     TY2019–2020 (8,939,959; 9,001,513) and continues after the split
-     (9,331,698 in TY2021, against 10,524,718 for the summed components:
-     a 12.8% overcount). By AGI class there is no anchor, so class values
-     would be an allocation of that national figure.
-   - *Overlap observable in one year* (IRA + pensions): TY2018 publishes the
-     combined count by AGI class; the ratio to the mean of TY2017 and
-     TY2019 component sums runs 0.76–0.90 by class (0.795 overall).
-   - *Nothing to anchor on* (energy credits, sick leave windows, 1.4A basis
-     categories): bounds only, [largest component, sum of components].
+3. **Return counts in totals whose components overlap — decided
+   2026-09-27: bounds plus national counts, no modelled overlap.** A sum of
+   component counts overcounts returns that sit in both, so the derived count
+   is NA with `bound_lo` = the largest component and `bound_hi` = their sum.
+   Where Pub 4801 prints the combined count nationally, the all-returns total
+   row carries it as an exact value: partnership + S corporation, Schedule E
+   line 32, which equals Table 1.4's combined count in TY2011–2020 to within
+   last-digit rounding (±1 in 2011, 2014, 2015; 9,331,698 in TY2021 against
+   10,524,718 summed). The alternatives considered and rejected: a class
+   allocation of the national count, and an overlap ratio borrowed from
+   TY2018 for IRA + pensions.
 
 ## Per table
 
@@ -281,3 +281,50 @@ published in some years only. "Returns" in a total means number of returns.
    TY2018–2023 filer refit), then 1.2, 2.1, 3.3, then the rest.
 3. The seam report per condense/expand entry, reviewed before any panel is
    called done.
+
+## As built (2026-09-27)
+
+`Rscript harmonize_bysize.R --dest <store>` reads `aligned/bysize_*.csv` and
+`aligned/line_items.csv` and writes `aligned/panel_{family}.csv`,
+`_panel_seams.csv` and `_panel_changes.csv`. Differences from the design
+above:
+
+- **Two change columns.** `change` / `change_note` carry the series (or
+  panel) role; `agi_change` / `agi_note` the AGI-class role. A row can hold
+  both (TY2011–2012's $200k–$250k wages is a wages total and a class
+  component), so the consistent classes are `agi_change != 'expand_component'`.
+- **Panels.** Tables without stacked blocks get their sections promoted to
+  the panel (3.1's computation types, 3.2's status blocks), else
+  `all returns`. 3.2's "All returns" (TY2011–2015) is relabelled "All
+  returns with total income tax": its TY2015 total equals Table 3.3's
+  returns with total income tax.
+- **Checks, all passing:** every published cell appears exactly once with its
+  value and flag unchanged; no two rows share a cell; the Schedule E anchor
+  agrees with the published count wherever both exist. Outside the script,
+  the consistent AGI classes were summed against their panel totals for
+  every additive series: 13,055 comparisons, all 2,307 involving a derived
+  class within rounding. The 6 that are not are published cells of Table
+  3.5 TY2019 (see national_bysize.md, "Known problems in the published
+  tables").
+- **Seams reviewed:** wages 9.02T → 9.74T (2021 → 2022); partnership + S
+  corporation net 707.4B → 975.7B (2020 → 2021); joint + surviving spouse
+  groups continuous across 2014 → 2015 in 1.2 and 1.6; withholding, energy
+  credits and the sick leave credit continuous in amount.
+
+| Table | rows | published | derived | NA fillers | flagged other |
+|---|---|---|---|---|---|
+| 1.1 | 15,340 | 15,340 | 0 | 0 | 0 |
+| 1.2 | 40,852 | 31,104 | 1,924 | 7,824 | 976 |
+| 1.4 | 78,702 | 67,356 | 1,726 | 9,620 | 15,726 |
+| 1.4A | 62,514 | 50,132 | 7,978 | 4,404 | 0 |
+| 1.6 | 13,000 | 9,920 | 560 | 2,520 | 0 |
+| 1.7 | 6,292 | 6,292 | 0 | 0 | 52 |
+| 2.1 | 50,841 | 44,045 | 294 | 6,502 | 6,966 |
+| 2.3 | 16,640 | 15,552 | 528 | 560 | 624 |
+| 2.5 | 34,800 | 33,540 | 1,060 | 200 | 3,600 |
+| 2.7 | 1,430 | 1,430 | 0 | 0 | 130 |
+| 3.1 | 18,183 | 18,183 | 0 | 0 | 1,140 |
+| 3.1A | 1,482 | 1,482 | 0 | 0 | 0 |
+| 3.2 | 9,828 | 9,828 | 0 | 0 | 3,744 |
+| 3.3 | 63,978 | 56,776 | 556 | 6,646 | 18,270 |
+| 3.5 | 14,650 | 14,650 | 0 | 0 | 7,500 |

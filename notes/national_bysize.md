@@ -173,6 +173,30 @@ across classes against 23.29M) while every age column still adds up. A fit
 targeting 1.6 by age × AGI should merge the combined cells with their
 receiving neighbour rather than target them as zeros.
 
+## Harmonized panels (`aligned/panel_{family}.csv`)
+
+`harmonize_bysize.R` builds one panel per table from the aligned panels,
+with every concept change resolved: a category merged or split
+(`checks/bysize_concepts.csv`, and AGI classes automatically) becomes a
+consistent total in every year, with its components kept and NA where they
+are not published; anything else is kept and flagged `other`. A derived
+return count whose components can overlap is NA with bounds, plus the Pub
+4801 national count where one exists. Columns, rules and decisions:
+[bysize_panels_plan.md](bysize_panels_plan.md). Read `value` with `derived`,
+`change` and `agi_change`; the consistent AGI classes are
+`agi_change != 'expand_component'`.
+
+## Known problems in the published tables
+
+- **Table 3.5, TY2019, the 10% and 12% brackets.** SOI marks large cells
+  combined (`**`) at $30,000–$75,000, and the 12% bracket's classes add to
+  98,963,311 returns against a published total of 97,408,413 (1,554,898
+  more). The $50,000–$75,000 cell, 23,369,603, exceeds the 10% bracket's
+  22,098,276 in the same class, which cannot be (income taxed at 12% implies
+  income taxed at 10%), and runs about 1.5M above TY2018 and TY2020. Raw
+  cells verified 2026-09-27. The additivity check reports the group as
+  `combined`; treat these cells as unreliable.
+
 ## Known consumers
 
 - **Affordability-Index** (Budget-Lab-Yale/Affordability-Index): the national

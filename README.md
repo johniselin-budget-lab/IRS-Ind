@@ -76,6 +76,14 @@ It reads cells through `read_xls_cells.py` (python3 + xlrd), because SOI's
 exits non-zero if a size-class total or a cross-table return count fails
 without a combined or suppressed cell to explain it.
 
+Then build the harmonized, table-specific panels, with every concept change
+across years resolved (see
+[notes/bysize_panels_plan.md](notes/bysize_panels_plan.md)):
+
+```bash
+Rscript harmonize_bysize.R --dest /path/to/store  # writes aligned/panel_*.csv
+```
+
 Families for `--only` (comma-separated, default all): `geo` (the four
 by-geographic-area CSV sets and their documentation guides), `by_size` (the
 Pub 1304 tables), `ira` (ten IRA tables plus their precision companions),
@@ -135,6 +143,10 @@ aligned/            line_items.csv                    every extracted form line,
                                                       long panel, every mirrored year
                     _bysize_{additivity,crosstable,labels}.csv  its checks and
                                                       label coverage (align_bysize.R)
+                    panel_{family}.csv                each table harmonized across
+                                                      years (harmonize_bysize.R)
+                    _panel_{seams,changes}.csv        its seam report and the
+                                                      catalogue of changes
 checks/             line_item_values.csv              cover-page totals, all vintages
                     _report.csv                       the run_checks.R report
                     _arithmetic.csv                   the check_arithmetic.R report

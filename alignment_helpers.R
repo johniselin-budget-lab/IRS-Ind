@@ -363,3 +363,9 @@ item_key = function(family, col_group, col_label, tax_year, synonyms) {
 is_additive = function(item) {
   !grepl('percent of|percentage|average|\\bmean\\b|\\bmedian\\b|\\bratio\\b', item, perl = TRUE)
 }
+
+# Do the classes [lo, hi) tile one interval with no gap or overlap?
+is_partition = function(lo, hi) {
+  o = order(lo)
+  length(lo) >= 2 && all(hi[o][-length(o)] == lo[o][-1])
+}
