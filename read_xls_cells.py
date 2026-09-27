@@ -3,7 +3,8 @@
 non-empty cell plus one per merged range:
 
     C,row,col,flag,value      a cell (1-based); value as text, numbers as shortest round-trip repr
-    M,first_row,last_row,first_col,last_col   a merged range (1-based inclusive)
+    M,first_row,last_row,first_col,last_col   a merged range (1-based inclusive),
+                              or a header centred across a run of cells (below)
 
 Used by alignment_helpers.R::read_bysize_sheet(). It exists because SOI marks
 its disclosure flags with NUMBER FORMATS, not text: a cell shown as "* 1,234"
@@ -67,3 +68,33 @@ for r in range(sheet.nrows):
 for r0, r1, c0, c1 in sorted(sheet.merged_cells):
     # xlrd ranges are 0-based half-open
     out.writerow(["M", r0 + 1, r1, c0 + 1, c1])
+
+# BIFF4 has no merged cells: those vintages (Table 2.3 TY1996-2003) span a
+# header over its columns with "centre across selection" instead -- the text
+# in the leftmost cell, the empty cells to its right carrying the same
+# alignment. Each such run is emitted as a one-row merged range so the R side
+# treats it as a spanner.
+CENTRE_ACROSS = 6
+
+
+def is_empty(r, c):
+    return (sheet.cell_type(r, c) in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK)
+            or str(sheet.cell_value(r, c)).strip() == "")
+
+
+def centred_across(r, c):
+    return book.xf_list[sheet.cell_xf_index(r, c)].alignment.hor_align == CENTRE_ACROSS
+
+
+for r in range(sheet.nrows):
+    c = 0
+    while c < sheet.ncols:
+        if is_empty(r, c) or not centred_across(r, c):
+            c += 1
+            continue
+        end = c + 1
+        while end < sheet.ncols and is_empty(r, end) and centred_across(r, end):
+            end += 1
+        if end - c >= 2:
+            out.writerow(["M", r + 1, r + 1, c + 1, end])
+        c = end
